@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { ProtectedRoute } from './components/auth'
-import { Landing, AuthCallback, Dashboard, Day1 } from './pages'
+import { Landing, AuthCallback, Dashboard, Day1, Day2 } from './pages'
 
 function App() {
   return (
@@ -26,6 +26,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Day1 />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/day/2"
+          element={
+            <ProtectedRoute>
+              <Day2 />
             </ProtectedRoute>
           }
         />
