@@ -6,9 +6,10 @@ import { validateEmail } from '@/utils/validators'
 interface EmailAuthModalProps {
   isOpen: boolean
   onClose: () => void
+  mode: 'start' | 'continue'
 }
 
-export function EmailAuthModal({ isOpen, onClose }: EmailAuthModalProps) {
+export function EmailAuthModal({ isOpen, onClose, mode }: EmailAuthModalProps) {
   const [email, setEmail] = useState('')
   const [consent, setConsent] = useState(false)
   const [marketingConsent, setMarketingConsent] = useState(false)
@@ -25,7 +26,8 @@ export function EmailAuthModal({ isOpen, onClose }: EmailAuthModalProps) {
       return
     }
 
-    if (!consent) {
+    // 시작하기 모드에서만 동의 확인
+    if (mode === 'start' && !consent) {
       setError('개인정보 수집 및 이용에 동의해주세요')
       return
     }
@@ -96,7 +98,7 @@ export function EmailAuthModal({ isOpen, onClose }: EmailAuthModalProps) {
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="시작하기">
+    <Modal isOpen={isOpen} onClose={handleClose} title={mode === 'start' ? '시작하기' : '이어하기'}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
           type="email"
@@ -108,18 +110,20 @@ export function EmailAuthModal({ isOpen, onClose }: EmailAuthModalProps) {
           required
         />
 
-        <div className="space-y-3">
-          <Checkbox
-            label="(필수) 개인정보 수집 및 이용에 동의합니다"
-            checked={consent}
-            onChange={(e) => setConsent(e.target.checked)}
-          />
-          <Checkbox
-            label="(선택) 마케팅 정보 수신에 동의합니다"
-            checked={marketingConsent}
-            onChange={(e) => setMarketingConsent(e.target.checked)}
-          />
-        </div>
+        {mode === 'start' && (
+          <div className="space-y-3">
+            <Checkbox
+              label="(필수) 개인정보 수집 및 이용에 동의합니다"
+              checked={consent}
+              onChange={(e) => setConsent(e.target.checked)}
+            />
+            <Checkbox
+              label="(선택) 마케팅 정보 수신에 동의합니다"
+              checked={marketingConsent}
+              onChange={(e) => setMarketingConsent(e.target.checked)}
+            />
+          </div>
+        )}
 
         {error && <p className="text-sm text-red-500">{error}</p>}
 

@@ -5,12 +5,15 @@ import { Container } from '@/components/layout'
 
 export function Landing() {
   const [showAuthModal, setShowAuthModal] = useState(false)
+  const [authMode, setAuthMode] = useState<'start' | 'continue'>('start')
 
   const handleStart = () => {
+    setAuthMode('start')
     setShowAuthModal(true)
   }
 
   const handleContinue = () => {
+    setAuthMode('continue')
     setShowAuthModal(true)
   }
 
@@ -76,6 +79,7 @@ export function Landing() {
       <EmailAuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
+        mode={authMode}
       />
     </div>
   )

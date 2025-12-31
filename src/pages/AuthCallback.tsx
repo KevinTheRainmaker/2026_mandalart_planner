@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
+import { createMandala } from '@/lib/api'
 import { Loading } from '@/components/common'
 
 export function AuthCallback() {
@@ -15,8 +16,31 @@ export function AuthCallback() {
         if (error) throw error
 
         if (session) {
-          // Redirect to dashboard
-          navigate('/dashboard', { replace: true })
+          // Check if user has existing mandala for 2026
+          const { data: existingMandala, error: fetchError } = await supabase
+            .from('mandalas')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .eq('year', 2026)
+            .maybeSingle()
+
+          if (fetchError) throw fetchError
+
+          if (existingMandala) {
+            // Existing user - redirect to dashboard
+            navigate('/dashboard', { replace: true })
+          } else {
+            // New user - create mandala and redirect to Day 1
+            const marketingConsent = session.user.user_metadata?.marketing_consent || false
+
+            await createMandala({
+              user_id: session.user.id,
+              year: 2026,
+              marketing_consent: marketingConsent,
+            })
+
+            navigate('/day/1', { replace: true })
+          }
         } else {
           // No session, redirect to home
           navigate('/', { replace: true })
