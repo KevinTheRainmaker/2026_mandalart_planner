@@ -19,6 +19,7 @@ export function Day1Reflection({ mandala, onSave }: Day1ReflectionProps) {
   const [showThemeSelection, setShowThemeSelection] = useState(
     !mandala.reflection_theme
   )
+  const [currentStep, setCurrentStep] = useState(0)
 
   // Restore previous answers when component mounts or theme changes
   useEffect(() => {
@@ -69,9 +70,18 @@ export function Day1Reflection({ mandala, onSave }: Day1ReflectionProps) {
     })
   }
 
-  const isSaveEnabled =
+  // Check if all questions have been answered (at least 1 character)
+  const theme = selectedTheme ? REFLECTION_THEMES[selectedTheme] : null
+  const totalQuestions = theme?.questions.length || 0
+
+  const allQuestionsAnswered =
     selectedTheme !== null &&
-    Object.values(answers).some((answer) => answer.trim().length > 0)
+    totalQuestions > 0 &&
+    Array.from({ length: totalQuestions }).every((_, idx) =>
+      answers[idx] && answers[idx].trim().length > 0
+    )
+
+  const currentAnswerValid = answers[currentStep] && answers[currentStep].trim().length > 0
 
   if (showThemeSelection) {
     return (
@@ -112,9 +122,10 @@ export function Day1Reflection({ mandala, onSave }: Day1ReflectionProps) {
     )
   }
 
-  if (!selectedTheme) return null
+  if (!selectedTheme || !theme) return null
 
-  const theme = REFLECTION_THEMES[selectedTheme]
+  const currentQuestion = theme.questions[currentStep]
+  const isLastQuestion = currentStep === totalQuestions - 1
 
   return (
     <div className="space-y-6">
@@ -132,30 +143,63 @@ export function Day1Reflection({ mandala, onSave }: Day1ReflectionProps) {
         </Button>
       </div>
 
-      <div className="space-y-6">
-        {theme.questions.map((question, index) => (
-          <div key={index} className="space-y-2">
-            <label className="block font-medium text-gray-900">
-              {index + 1}. {question}
-            </label>
-            <Textarea
-              value={answers[index] || ''}
-              onChange={(e) => handleAnswerChange(index, e.target.value)}
-              placeholder="자유롭게 답변해주세요..."
-              rows={4}
-              maxLength={REFLECTION_ANSWER_MAX_LENGTH}
-            />
-            <div className="text-sm text-gray-500 text-right">
-              {(answers[index] || '').length} / {REFLECTION_ANSWER_MAX_LENGTH}
-            </div>
-          </div>
-        ))}
+      {/* Progress indicator */}
+      <div className="flex items-center gap-2">
+        <div className="text-sm text-gray-600">
+          질문 {currentStep + 1} / {totalQuestions}
+        </div>
+        <div className="flex-1 bg-gray-200 rounded-full h-2">
+          <div
+            className="bg-primary-600 h-2 rounded-full transition-all"
+            style={{ width: `${((currentStep + 1) / totalQuestions) * 100}%` }}
+          />
+        </div>
       </div>
 
-      <div className="flex justify-end pt-4">
-        <Button onClick={handleSave} disabled={!isSaveEnabled} size="lg">
-          저장하고 계속하기
+      {/* Current question */}
+      <div className="space-y-4 bg-white p-6 rounded-lg shadow-md">
+        <label className="block font-medium text-gray-900 text-lg">
+          {currentStep + 1}. {currentQuestion}
+        </label>
+        <Textarea
+          value={answers[currentStep] || ''}
+          onChange={(e) => handleAnswerChange(currentStep, e.target.value)}
+          placeholder="자유롭게 답변해주세요..."
+          rows={8}
+          maxLength={REFLECTION_ANSWER_MAX_LENGTH}
+          autoFocus
+        />
+        <div className="text-sm text-gray-500 text-right">
+          {(answers[currentStep] || '').length} / {REFLECTION_ANSWER_MAX_LENGTH}
+        </div>
+      </div>
+
+      {/* Navigation buttons */}
+      <div className="flex justify-between pt-4">
+        <Button
+          variant="outline"
+          onClick={() => setCurrentStep(currentStep - 1)}
+          disabled={currentStep === 0}
+        >
+          이전 질문
         </Button>
+
+        {!isLastQuestion ? (
+          <Button
+            onClick={() => setCurrentStep(currentStep + 1)}
+            disabled={!currentAnswerValid}
+          >
+            다음 질문
+          </Button>
+        ) : (
+          <Button
+            onClick={handleSave}
+            disabled={!allQuestionsAnswered}
+            size="lg"
+          >
+            저장하고 계속하기
+          </Button>
+        )}
       </div>
     </div>
   )
