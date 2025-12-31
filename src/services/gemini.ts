@@ -57,14 +57,21 @@ export async function generateAIReport(mandala: Mandala): Promise<AISummary> {
 `
 
   try {
+    console.log('Generating AI report with Gemini API...')
+    console.log('API Key configured:', !!apiKey)
+
     const result = await model.generateContent(prompt)
     const response = result.response
     const text = response.text()
 
+    console.log('Gemini API response received')
+    console.log('Response text:', text.substring(0, 200) + '...')
+
     // Extract JSON from response (handle markdown code blocks if present)
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
-      throw new Error('Failed to parse AI response')
+      console.error('Failed to extract JSON from response:', text)
+      throw new Error('Failed to parse AI response - no JSON found in response')
     }
 
     const aiSummary: AISummary = JSON.parse(jsonMatch[0])
@@ -76,12 +83,19 @@ export async function generateAIReport(mandala: Mandala): Promise<AISummary> {
       !aiSummary.keywords ||
       !aiSummary.insights
     ) {
-      throw new Error('Invalid AI response structure')
+      console.error('Invalid AI response structure:', aiSummary)
+      throw new Error('Invalid AI response structure - missing required fields')
     }
 
+    console.log('AI report generated successfully')
     return aiSummary
   } catch (error) {
     console.error('Error generating AI report:', error)
-    throw new Error('Failed to generate AI report')
+    if (error instanceof Error) {
+      console.error('Error message:', error.message)
+      console.error('Error stack:', error.stack)
+      throw new Error(`Failed to generate AI report: ${error.message}`)
+    }
+    throw new Error('Failed to generate AI report - unknown error')
   }
 }
