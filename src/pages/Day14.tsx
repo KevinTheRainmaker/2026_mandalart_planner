@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Container, Header } from '@/components/layout'
 import { MandalaGrid } from '@/components/mandala'
 import { Button, Loading } from '@/components/common'
 import { useAuth, useMandala } from '@/hooks'
-import { generateAIReport } from '@/services'
+import { generateAIReport, generateReportPDF, generateMandalaPDF } from '@/services'
 import type { AISummary } from '@/types'
 
 export function Day14() {
@@ -13,6 +13,7 @@ export function Day14() {
   const [aiReport, setAiReport] = useState<AISummary | null>(
     mandala?.ai_summary || null
   )
+  const mandalaGridRef = useRef<HTMLDivElement>(null)
 
   const handleGenerateReport = async () => {
     if (!mandala) return
@@ -31,6 +32,30 @@ export function Day14() {
       alert('AI 리포트 생성에 실패했습니다. 다시 시도해주세요.')
     } finally {
       setIsGenerating(false)
+    }
+  }
+
+  const handleDownloadReport = async () => {
+    if (!aiReport) return
+
+    try {
+      const today = new Date().toISOString().split('T')[0]
+      await generateReportPDF(aiReport, `mandala-report-${today}.pdf`)
+    } catch (error) {
+      console.error('Failed to download report PDF:', error)
+      alert('PDF 다운로드에 실패했습니다. 다시 시도해주세요.')
+    }
+  }
+
+  const handleDownloadMandala = async () => {
+    if (!mandalaGridRef.current || !mandala) return
+
+    try {
+      const today = new Date().toISOString().split('T')[0]
+      await generateMandalaPDF(mandalaGridRef.current, mandala, `mandala-chart-${today}.pdf`)
+    } catch (error) {
+      console.error('Failed to download Mandala PDF:', error)
+      alert('PDF 다운로드에 실패했습니다. 다시 시도해주세요.')
     }
   }
 
@@ -141,6 +166,13 @@ export function Day14() {
                   {aiReport.insights}
                 </p>
               </div>
+
+              {/* Download Report Button */}
+              <div className="flex justify-center">
+                <Button onClick={handleDownloadReport} variant="secondary" size="lg">
+                  📄 AI 리포트 PDF 다운로드
+                </Button>
+              </div>
             </div>
           )}
 
@@ -150,7 +182,14 @@ export function Day14() {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 만다라트 9x9 그리드
               </h3>
-              <MandalaGrid mandala={mandala} />
+              <div ref={mandalaGridRef}>
+                <MandalaGrid mandala={mandala} />
+              </div>
+              <div className="flex justify-center mt-6">
+                <Button onClick={handleDownloadMandala} variant="secondary" size="lg">
+                  📊 만다라트 계획서 PDF 다운로드
+                </Button>
+              </div>
             </div>
           )}
         </div>
