@@ -1,14 +1,20 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Container, Header } from '@/components/layout'
-import { Day1Reflection } from '@/components/day'
+import { Day1Reflection, DayWaitScreen } from '@/components/day'
 import { useAuth, useMandala } from '@/hooks'
 import { Loading } from '@/components/common'
 import type { ReflectionThemeKey, ReflectionAnswers } from '@/types'
+
+const DEBUG_EMAIL = 'kangbeen.ko@gm.gist.ac.kr'
 
 export function Day1() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { mandala, isLoading, updateMandala } = useMandala(user?.id)
+  const [showWaitScreen, setShowWaitScreen] = useState(false)
+
+  const isDebugAccount = user?.email === DEBUG_EMAIL
 
   const handleSave = async (data: {
     reflection_theme: ReflectionThemeKey
@@ -24,8 +30,13 @@ export function Day1() {
       current_day: 2,
     })
 
-    // Navigate to day 2
-    navigate('/day/2')
+    // Debug account can proceed immediately
+    if (isDebugAccount) {
+      navigate('/day/2')
+    } else {
+      // Show wait screen until midnight
+      setShowWaitScreen(true)
+    }
   }
 
   if (isLoading) {
@@ -47,6 +58,11 @@ export function Day1() {
         </div>
       </div>
     )
+  }
+
+  // Show wait screen after saving (non-debug accounts only)
+  if (showWaitScreen) {
+    return <DayWaitScreen currentDay={1} nextDay={2} />
   }
 
   return (

@@ -20,16 +20,20 @@ export function Day14() {
 
     setIsGenerating(true)
     try {
+      console.log('Starting AI report generation...')
       const report = await generateAIReport(mandala)
+      console.log('AI report generated successfully:', report)
       setAiReport(report)
 
       await updateMandala({
         ai_summary: report,
         completed_days: [...(mandala.completed_days || []), 14],
       })
+      console.log('Mandala updated with AI report')
     } catch (error) {
       console.error('Failed to generate AI report:', error)
-      alert('AI 리포트 생성에 실패했습니다. 다시 시도해주세요.')
+      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류'
+      alert(`AI 리포트 생성에 실패했습니다.\n\n오류: ${errorMessage}\n\n브라우저 콘솔을 확인해주세요.`)
     } finally {
       setIsGenerating(false)
     }
