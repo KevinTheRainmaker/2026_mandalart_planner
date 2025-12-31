@@ -72,7 +72,8 @@ export function AuthCallback() {
         }
       } catch (error) {
         console.error('Auth callback error:', error)
-        alert('로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.')
+        const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류'
+        alert(`로그인 처리 중 오류가 발생했습니다.\n\n오류 내용: ${errorMessage}\n\n브라우저 콘솔을 확인해주세요.`)
         navigate('/', { replace: true })
       }
     }
