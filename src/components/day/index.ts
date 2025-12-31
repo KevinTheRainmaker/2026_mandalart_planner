@@ -1,3 +1,5 @@
 export { Day1Reflection } from './Day1Reflection'
 export { Day2Review } from './Day2Review'
 export { Day3CenterGoal } from './Day3CenterGoal'
+export { Day4SubGoals } from './Day4SubGoals'
+export { Day5SubGoals } from './Day5SubGoals'
