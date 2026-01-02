@@ -190,7 +190,7 @@ export function Day14() {
                 이름과 다짐을 입력하고 PDF로 저장하세요.
               </p>
               <div ref={mandalaGridRef}>
-                <MandalaGrid mandala={mandala} />
+                <MandalaGrid mandala={mandala} onUpdate={updateMandala} />
               </div>
               <div className="flex justify-center mt-6">
                 <Button onClick={handleDownloadMandala} variant="secondary" size="lg">

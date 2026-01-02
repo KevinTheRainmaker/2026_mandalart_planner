@@ -25,7 +25,7 @@ export function useMandala(userId: string | undefined, year: number = 2026) {
     } finally {
       setLoading(false)
     }
-  }, [userId, year, setMandala, setLoading, setError])
+  }, [userId, year]) // Zustand actions are stable, no need to include them
 
   // Update mandala
   const updateMandala = useCallback(
@@ -46,7 +46,7 @@ export function useMandala(userId: string | undefined, year: number = 2026) {
         setLoading(false)
       }
     },
-    [mandala?.id, setMandala, setLoading, setError]
+    [mandala?.id] // Zustand actions are stable, no need to include them
   )
 
   // Load mandala on mount

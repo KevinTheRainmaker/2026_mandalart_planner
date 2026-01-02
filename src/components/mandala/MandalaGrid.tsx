@@ -1,15 +1,12 @@
 import { useState } from 'react'
-import type { Mandala } from '@/types'
-import { useMandala } from '@/hooks'
-import { useAuth } from '@/hooks'
+import type { Mandala, MandalaUpdate } from '@/types'
 
 interface MandalaGridProps {
   mandala: Mandala
+  onUpdate?: (updates: MandalaUpdate) => Promise<void>
 }
 
-export function MandalaGrid({ mandala }: MandalaGridProps) {
-  const { user } = useAuth()
-  const { updateMandala } = useMandala(user?.id)
+export function MandalaGrid({ mandala, onUpdate }: MandalaGridProps) {
   const { center_goal, sub_goals, ai_summary, name, commitment } = mandala
 
   const [editableName, setEditableName] = useState(name || '')
@@ -24,14 +21,14 @@ export function MandalaGrid({ mandala }: MandalaGridProps) {
   }
 
   const handleNameBlur = async () => {
-    if (editableName !== name) {
-      await updateMandala({ name: editableName })
+    if (editableName !== name && onUpdate) {
+      await onUpdate({ name: editableName })
     }
   }
 
   const handleCommitmentBlur = async () => {
-    if (editableCommitment !== commitment) {
-      await updateMandala({ commitment: editableCommitment })
+    if (editableCommitment !== commitment && onUpdate) {
+      await onUpdate({ commitment: editableCommitment })
     }
   }
 
