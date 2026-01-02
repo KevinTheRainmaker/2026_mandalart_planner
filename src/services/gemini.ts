@@ -9,7 +9,9 @@ export async function generateAIReport(mandala: Mandala): Promise<AISummary> {
   }
 
   const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' })
+  // Using gemini-pro for stable API access
+  // Alternative models: 'gemini-1.5-flash', 'gemini-1.5-flash-latest'
+  const model = genAI.getGenerativeModel({ model: 'gemini-pro' })
 
   const prompt = `
 당신은 전문 목표 설정 코치입니다. 사용자가 14일 동안 작성한 만다라트 목표 설정 데이터를 분석하여 종합 리포트를 생성해주세요.
