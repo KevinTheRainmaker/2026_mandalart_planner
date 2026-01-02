@@ -165,10 +165,10 @@ export async function generateMandalaPDF(
     container.style.height = '210mm' // A4 landscape height
     container.style.backgroundColor = '#F5EFE6'
     container.style.fontFamily = 'system-ui, -apple-system, "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif'
-    container.style.padding = '20px'
+    container.style.padding = '15px'
     container.style.boxSizing = 'border-box'
     container.style.display = 'flex'
-    container.style.gap = '30px'
+    container.style.gap = '20px'
 
     // Build grid HTML
     let gridHTML = ''
@@ -194,21 +194,29 @@ export async function generateMandalaPDF(
             const isCenterCell = cellIndex === 4
 
             let cellContent = ''
-            let cellStyle = 'border: 1px solid #999; display: flex; align-items: center; justify-content: center; text-align: center; padding: 3px; background-color: white; min-height: 45px;'
+            let cellStyle = 'border: 1px solid #999; display: flex; align-items: center; justify-content: center; text-align: center; padding: 4px; background-color: white; height: 60px; box-sizing: border-box;'
 
             if (isCenter && isCenterCell) {
+              // Center of center section - show main goal
               cellContent = centerGoal
-              cellStyle += 'font-weight: bold; font-size: 11px;'
+              cellStyle += 'font-weight: bold; font-size: 11px; background-color: #FFF8DC;'
+            } else if (isCenter && !isCenterCell) {
+              // Surrounding cells of center section - show 8 sub-goals
+              const subGoalIdx = cellIndex < 4 ? cellIndex : cellIndex - 1
+              cellContent = subGoals[subGoalIdx] || '세부 목표'
+              cellStyle += 'font-weight: 600; font-size: 9px; background-color: #F0F8FF;'
             } else if (!isCenter && isCenterCell) {
+              // Center of other sections - show sub-goal
               cellContent = subGoal
-              cellStyle += 'font-weight: bold; font-size: 10px;'
+              cellStyle += 'font-weight: bold; font-size: 10px; background-color: #FFF8DC;'
             } else if (!isCenter) {
+              // Surrounding cells of other sections - show action plans
               const planIndex = cellIndex < 4 ? cellIndex : cellIndex - 1
               cellContent = plans[planIndex] || ''
               cellStyle += 'font-size: 9px;'
             }
 
-            gridHTML += `<div style="${cellStyle}"><div style="word-break: keep-all; overflow-wrap: break-word;">${cellContent}</div></div>`
+            gridHTML += `<div style="${cellStyle}"><div style="word-break: keep-all; overflow-wrap: break-word; line-height: 1.3;">${cellContent}</div></div>`
           }
         }
         gridHTML += '</div>'
@@ -217,22 +225,22 @@ export async function generateMandalaPDF(
 
     // Build full HTML
     container.innerHTML = `
-      <div style="flex: 0 0 250px; color: #2D2D2D;">
+      <div style="flex: 0 0 220px; color: #2D2D2D;">
         <!-- Title Section -->
-        <div style="margin-bottom: 30px;">
-          <div style="font-size: 22px; font-weight: bold; margin-bottom: 8px;">
-            ${mandala.name}의
+        <div style="margin-bottom: 25px;">
+          <div style="font-size: 20px; font-weight: bold; margin-bottom: 6px;">
+            ${mandala.name}'의'
           </div>
-          <div style="font-size: 18px; font-weight: bold;">2026 만다라트</div>
+          <div style="font-size: 17px; font-weight: bold;">2026 만다라트</div>
         </div>
 
         <!-- Keywords Section -->
-        <div style="margin-bottom: 30px;">
-          <div style="font-size: 16px; font-weight: bold; margin-bottom: 8px;">keyword</div>
-          <div style="font-size: 12px; line-height: 1.6; margin-bottom: 8px;">
-            ${keywords.length > 0 ? keywords.slice(0, 3).join(', ') : ''}
+        <div style="margin-bottom: 25px;">
+          <div style="font-size: 15px; font-weight: bold; margin-bottom: 6px;">keyword</div>
+          <div style="font-size: 11px; line-height: 1.6; margin-bottom: 6px;">
+            ${keywords.length > 0 ? keywords.slice(0, 3).join(', ') : '키워드 2~3개를 적어주세요!'}
           </div>
-          <div style="border-bottom: 2px solid #2D2D2D; width: 200px;"></div>
+          <div style="border-bottom: 2px solid #2D2D2D; width: 180px;"></div>
         </div>
 
         <!-- Commitment Section -->
@@ -241,12 +249,12 @@ export async function generateMandalaPDF(
           <div style="font-size: 12px; line-height: 1.6; margin-bottom: 8px; word-break: keep-all;">
             ${mandala.commitment}
           </div>
-          <div style="border-bottom: 2px solid #2D2D2D; width: 200px;"></div>
+          <div style="border-bottom: 2px solid #2D2D2D; width: 180px;"></div>
         </div>
       </div>
 
       <!-- Mandala Grid -->
-      <div style="flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 8px;">
+      <div style="flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 6px;">
         ${gridHTML}
       </div>
     `
