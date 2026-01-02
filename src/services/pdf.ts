@@ -179,9 +179,8 @@ export async function generateMandalaPDF(
         const subGoalIndex = sectionIndex > 4 ? sectionIndex - 1 : sectionIndex
         const subGoal = isCenter ? '' : (subGoals[subGoalIndex] || '세부 목표')
         const plans = isCenter ? [] : (actionPlans[subGoalIndex.toString()] || [])
-        const bgColor = isCenter ? '#D4C5B0' : sectionColors[sectionIndex]
 
-        gridHTML += `<div style="background-color: ${bgColor}; border: 2px solid #666; position: relative; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 1px;">`
+        gridHTML += `<div style="background-color: white; border: 2px solid #666; position: relative; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 60px); gap: 0; min-height: 180px; height: 180px;">`
 
         // Add section number
         if (!isCenter) {
@@ -194,21 +193,21 @@ export async function generateMandalaPDF(
             const isCenterCell = cellIndex === 4
 
             let cellContent = ''
-            let cellStyle = 'border: 1px solid #999; display: flex; align-items: center; justify-content: center; text-align: center; padding: 4px; background-color: white; height: 60px; box-sizing: border-box;'
+            let cellStyle = 'border: 0.5px solid #ccc; display: flex; align-items: center; justify-content: center; text-align: center; padding: 4px; background-color: white; height: 60px; width: 100%; box-sizing: border-box;'
 
             if (isCenter && isCenterCell) {
               // Center of center section - show main goal
               cellContent = centerGoal
-              cellStyle += 'font-weight: bold; font-size: 11px; background-color: #FFF8DC;'
+              cellStyle += 'font-weight: bold; font-size: 11px;'
             } else if (isCenter && !isCenterCell) {
               // Surrounding cells of center section - show 8 sub-goals
               const subGoalIdx = cellIndex < 4 ? cellIndex : cellIndex - 1
               cellContent = subGoals[subGoalIdx] || '세부 목표'
-              cellStyle += 'font-weight: 600; font-size: 9px; background-color: #F0F8FF;'
+              cellStyle += 'font-weight: 600; font-size: 9px;'
             } else if (!isCenter && isCenterCell) {
               // Center of other sections - show sub-goal
               cellContent = subGoal
-              cellStyle += 'font-weight: bold; font-size: 10px; background-color: #FFF8DC;'
+              cellStyle += 'font-weight: bold; font-size: 10px;'
             } else if (!isCenter) {
               // Surrounding cells of other sections - show action plans
               const planIndex = cellIndex < 4 ? cellIndex : cellIndex - 1
@@ -255,7 +254,7 @@ export async function generateMandalaPDF(
       </div>
 
       <!-- Mandala Grid -->
-      <div style="flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 6px;">
+      <div style="flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 180px); gap: 6px;">
         ${gridHTML}
       </div>
     `
