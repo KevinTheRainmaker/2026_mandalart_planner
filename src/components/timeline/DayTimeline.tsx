@@ -2,6 +2,9 @@ import { useNavigate } from 'react-router-dom'
 import { DayCard } from './DayCard'
 import { DAY_PROMPTS } from '@/constants'
 import type { Mandala } from '@/types'
+import { useAuth } from '@/hooks'
+
+const DEBUG_EMAIL = 'kangbeen.ko@gm.gist.ac.kr'
 
 interface DayTimelineProps {
   mandala: Mandala | null
@@ -9,6 +12,8 @@ interface DayTimelineProps {
 
 export function DayTimeline({ mandala }: DayTimelineProps) {
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const isDebugAccount = user?.email === DEBUG_EMAIL
 
   const getDayStatus = (day: number) => {
     if (!mandala) {
@@ -18,12 +23,36 @@ export function DayTimeline({ mandala }: DayTimelineProps) {
     const currentDay = mandala.current_day
     const completedDays = mandala.completed_days || []
 
+    // If day is completed, always show as completed
     if (completedDays.includes(day)) {
       return 'completed'
     }
 
-    if (day === currentDay) {
+    // Day 1 is always accessible if not completed
+    if (day === 1) {
       return 'current'
+    }
+
+    // Debug account: allow access to current day and below
+    if (isDebugAccount) {
+      if (day === currentDay) {
+        return 'current'
+      }
+      if (day < currentDay) {
+        return 'available'
+      }
+      return 'locked'
+    }
+
+    // Regular users: enforce strict sequential completion
+    if (day === currentDay) {
+      // Check if previous day is completed
+      const previousDayCompleted = completedDays.includes(day - 1)
+      if (previousDayCompleted) {
+        return 'current'
+      } else {
+        return 'locked'
+      }
     }
 
     if (day < currentDay) {
