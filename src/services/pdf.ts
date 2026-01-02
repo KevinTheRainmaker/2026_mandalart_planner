@@ -220,9 +220,8 @@ export async function generateMandalaPDF(
       <div style="flex: 0 0 250px; color: #2D2D2D;">
         <!-- Title Section -->
         <div style="margin-bottom: 30px;">
-          <div style="font-size: 14px; margin-bottom: 8px;">이름 적는 곳</div>
           <div style="font-size: 22px; font-weight: bold; margin-bottom: 8px;">
-            ${mandala.name || '의'}
+            ${mandala.name}의
           </div>
           <div style="font-size: 18px; font-weight: bold;">2026 만다라트</div>
         </div>
@@ -231,7 +230,7 @@ export async function generateMandalaPDF(
         <div style="margin-bottom: 30px;">
           <div style="font-size: 16px; font-weight: bold; margin-bottom: 8px;">keyword</div>
           <div style="font-size: 12px; line-height: 1.6; margin-bottom: 8px;">
-            ${keywords.length > 0 ? keywords.slice(0, 3).join(', ') : '키워드 2~3개를 적어주세요!'}
+            ${keywords.length > 0 ? keywords.slice(0, 3).join(', ') : ''}
           </div>
           <div style="border-bottom: 2px solid #2D2D2D; width: 200px;"></div>
         </div>
@@ -240,7 +239,7 @@ export async function generateMandalaPDF(
         <div>
           <div style="font-size: 16px; font-weight: bold; margin-bottom: 8px;">다짐 한 마디!!</div>
           <div style="font-size: 12px; line-height: 1.6; margin-bottom: 8px; word-break: keep-all;">
-            ${mandala.commitment || '2026년의 나님 한 말마로 적어주세요!'}
+            ${mandala.commitment}
           </div>
           <div style="border-bottom: 2px solid #2D2D2D; width: 200px;"></div>
         </div>
