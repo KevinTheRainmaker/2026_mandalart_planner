@@ -42,7 +42,7 @@ export async function generateAIReport(mandala: Mandala): Promise<AISummary> {
    - 액션플랜의 구체성 평가
    - 실행 가능성 인사이트
 
-3. **keywords**: 전체 텍스트에서 추출한 핵심 키워드 5-7개 (배열)
+3. **keywords**: 전체 텍스트에서 추출한 핵심 키워드 3-5개 (배열)
 
 4. **insights**: 통합 인사이트 및 추천사항 (200-250자)
    - 회고와 목표의 일관성
