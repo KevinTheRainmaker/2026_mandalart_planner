@@ -54,6 +54,12 @@ export function Day14() {
   const handleDownloadMandala = async () => {
     if (!mandalaGridRef.current || !mandala) return
 
+    console.log('Downloading PDF with mandala data:', {
+      name: mandala.name,
+      commitment: mandala.commitment,
+      center_goal: mandala.center_goal
+    })
+
     try {
       const today = new Date().toISOString().split('T')[0]
       await generateMandalaPDF(mandalaGridRef.current, mandala, `mandala-chart-${today}.pdf`)

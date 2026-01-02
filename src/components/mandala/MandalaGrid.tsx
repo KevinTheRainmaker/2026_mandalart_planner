@@ -42,6 +42,7 @@ export function MandalaGrid({ mandala, onUpdate }: MandalaGridProps) {
         // Update Zustand store to reflect changes in PDF
         if (updated) {
           setMandala(updated)
+          console.log('Name updated in store:', updated.name)
         }
       } catch (error) {
         console.error('Failed to update name:', error)
@@ -62,6 +63,7 @@ export function MandalaGrid({ mandala, onUpdate }: MandalaGridProps) {
         // Update Zustand store to reflect changes in PDF
         if (updated) {
           setMandala(updated)
+          console.log('Commitment updated in store:', updated.commitment)
         }
       } catch (error) {
         console.error('Failed to update commitment:', error)
