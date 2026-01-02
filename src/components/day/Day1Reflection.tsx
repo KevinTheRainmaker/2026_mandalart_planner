@@ -101,19 +101,12 @@ export function Day1Reflection({ mandala, onSave }: Day1ReflectionProps) {
             return (
               <div
                 key={themeKey}
-                className="border-2 border-gray-200 rounded-lg p-6 cursor-pointer hover:border-primary-500 hover:bg-primary-50 transition-all"
+                className="border-2 border-gray-200 rounded-lg p-8 cursor-pointer hover:border-primary-500 hover:bg-primary-50 transition-all text-center"
                 onClick={() => handleThemeSelect(themeKey)}
               >
-                <h3 className="font-semibold text-lg text-gray-900 mb-3">
+                <h3 className="font-semibold text-xl text-gray-900">
                   {theme.title}
                 </h3>
-                <ul className="space-y-2">
-                  {theme.questions.map((question, idx) => (
-                    <li key={idx} className="text-sm text-gray-600">
-                      • {question}
-                    </li>
-                  ))}
-                </ul>
               </div>
             )
           })}
