@@ -228,9 +228,8 @@ export async function generateMandalaPDF(
       <div style="flex: 0 0 220px; color: #2D2D2D;">
         <!-- Title Section -->
         <div style="margin-bottom: 25px;">
-          <div style="font-size: 13px; margin-bottom: 6px;">이름 적는 곳</div>
           <div style="font-size: 20px; font-weight: bold; margin-bottom: 6px;">
-            ${mandala.name || '의'}
+            ${mandala.name}'의'
           </div>
           <div style="font-size: 17px; font-weight: bold;">2026 만다라트</div>
         </div>
@@ -246,9 +245,9 @@ export async function generateMandalaPDF(
 
         <!-- Commitment Section -->
         <div>
-          <div style="font-size: 15px; font-weight: bold; margin-bottom: 6px;">다짐 한 마디!!</div>
-          <div style="font-size: 11px; line-height: 1.6; margin-bottom: 6px; word-break: keep-all;">
-            ${mandala.commitment || '2026년의 나님 한 말마로 적어주세요!'}
+          <div style="font-size: 16px; font-weight: bold; margin-bottom: 8px;">다짐 한 마디!!</div>
+          <div style="font-size: 12px; line-height: 1.6; margin-bottom: 8px; word-break: keep-all;">
+            ${mandala.commitment}
           </div>
           <div style="border-bottom: 2px solid #2D2D2D; width: 180px;"></div>
         </div>
