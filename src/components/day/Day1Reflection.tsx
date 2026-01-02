@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Button, Textarea } from '@/components/common'
+import { useState, useEffect, useRef } from 'react'
+import { Button } from '@/components/common'
 import { REFLECTION_THEMES, THEME_KEYS, REFLECTION_ANSWER_MAX_LENGTH } from '@/constants'
 import type { Mandala, ReflectionThemeKey, ReflectionAnswers } from '@/types'
 
@@ -11,20 +11,78 @@ interface Day1ReflectionProps {
   }) => void
 }
 
+interface ChatMessage {
+  type: 'question' | 'answer' | 'theme-select'
+  content: string
+  questionIndex?: number
+}
+
 export function Day1Reflection({ mandala, onSave }: Day1ReflectionProps) {
   const [selectedTheme, setSelectedTheme] = useState<ReflectionThemeKey | null>(
     mandala.reflection_theme
   )
   const [answers, setAnswers] = useState<Record<number, string>>({})
-  const [showThemeSelection, setShowThemeSelection] = useState(
-    !mandala.reflection_theme
-  )
-  const [currentStep, setCurrentStep] = useState(0)
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [currentInput, setCurrentInput] = useState('')
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
+  const [isComplete, setIsComplete] = useState(false)
+  const chatEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  // Restore previous answers when component mounts or theme changes
+  // Auto-scroll to bottom when messages change
   useEffect(() => {
-    if (selectedTheme && Object.keys(mandala.reflection_answers).length > 0) {
-      // Convert ReflectionAnswers (string keys) to Record<number, string> (number keys)
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  // Initialize chat
+  useEffect(() => {
+    if (!selectedTheme) {
+      // Show initial greeting and theme selection
+      setMessages([
+        {
+          type: 'question',
+          content: '안녕하세요! 2025년 회고를 시작합니다.',
+        },
+        {
+          type: 'theme-select',
+          content: '작년 한 해는 어떤 한 해 였나요?\n아래에서 가장 가까운 테마를 선택해주세요.',
+        },
+      ])
+    } else {
+      // Restore previous session
+      const theme = REFLECTION_THEMES[selectedTheme]
+      const restoredMessages: ChatMessage[] = [
+        {
+          type: 'question',
+          content: '안녕하세요! 2025년 회고를 시작합니다.',
+        },
+      ]
+
+      // Add theme selection
+      restoredMessages.push({
+        type: 'answer',
+        content: `테마: ${theme.title}`,
+      })
+
+      // Restore answered questions
+      const answeredCount = Object.keys(mandala.reflection_answers).length
+      for (let i = 0; i < answeredCount; i++) {
+        restoredMessages.push({
+          type: 'question',
+          content: theme.questions[i],
+          questionIndex: i,
+        })
+        restoredMessages.push({
+          type: 'answer',
+          content: mandala.reflection_answers[i] || '',
+          questionIndex: i,
+        })
+      }
+
+      setMessages(restoredMessages)
+      setCurrentQuestionIndex(answeredCount)
+
+      // Convert ReflectionAnswers to Record<number, string>
       const answerObj: Record<number, string> = {}
       Object.entries(mandala.reflection_answers).forEach(([key, value]) => {
         const numKey = parseInt(key, 10)
@@ -33,32 +91,111 @@ export function Day1Reflection({ mandala, onSave }: Day1ReflectionProps) {
         }
       })
       setAnswers(answerObj)
-    } else {
-      setAnswers({})
+
+      // If all questions answered, show completion
+      if (answeredCount === theme.questions.length) {
+        setIsComplete(true)
+      } else {
+        // Show next question
+        setTimeout(() => {
+          setMessages((prev) => [
+            ...prev,
+            {
+              type: 'question',
+              content: theme.questions[answeredCount],
+              questionIndex: answeredCount,
+            },
+          ])
+        }, 500)
+      }
     }
-  }, [selectedTheme, mandala.reflection_answers])
+  }, [selectedTheme, mandala.reflection_theme, mandala.reflection_answers])
 
   const handleThemeSelect = (themeKey: ReflectionThemeKey) => {
+    const theme = REFLECTION_THEMES[themeKey]
     setSelectedTheme(themeKey)
-    setShowThemeSelection(false)
-    setAnswers({})
+
+    // Add answer message
+    setMessages((prev) => [
+      ...prev.filter((m) => m.type !== 'theme-select'),
+      {
+        type: 'answer',
+        content: `테마: ${theme.title}`,
+      },
+    ])
+
+    // Show first question after a delay
+    setTimeout(() => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: 'question',
+          content: theme.questions[0],
+          questionIndex: 0,
+        },
+      ])
+      setCurrentQuestionIndex(0)
+      inputRef.current?.focus()
+    }, 800)
   }
 
-  const handleAnswerChange = (index: number, value: string) => {
-    setAnswers((prev) => ({
+  const handleSubmitAnswer = () => {
+    if (!currentInput.trim() || !selectedTheme) return
+
+    const theme = REFLECTION_THEMES[selectedTheme]
+
+    // Add user's answer to messages
+    setMessages((prev) => [
       ...prev,
-      [index]: value,
-    }))
-  }
+      {
+        type: 'answer',
+        content: currentInput,
+        questionIndex: currentQuestionIndex,
+      },
+    ])
 
-  const handleChangeTheme = () => {
-    setShowThemeSelection(true)
+    // Save answer
+    const newAnswers = {
+      ...answers,
+      [currentQuestionIndex]: currentInput,
+    }
+    setAnswers(newAnswers)
+    setCurrentInput('')
+
+    // Move to next question or complete
+    const nextIndex = currentQuestionIndex + 1
+    if (nextIndex < theme.questions.length) {
+      setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            type: 'question',
+            content: theme.questions[nextIndex],
+            questionIndex: nextIndex,
+          },
+        ])
+        setCurrentQuestionIndex(nextIndex)
+        inputRef.current?.focus()
+      }, 800)
+    } else {
+      // All questions answered
+      setIsComplete(true)
+      setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            type: 'question',
+            content: '모든 질문에 답변해주셔서 감사합니다! 저장하고 다음 단계로 진행하시겠어요?',
+          },
+        ])
+      }, 800)
+    }
   }
 
   const handleSave = () => {
     if (!selectedTheme) return
 
-    // Convert Record<number, string> to ReflectionAnswers (string keys)
+    // Convert Record<number, string> to ReflectionAnswers
     const reflectionAnswers: ReflectionAnswers = {}
     Object.entries(answers).forEach(([key, value]) => {
       reflectionAnswers[key] = value
@@ -70,130 +207,106 @@ export function Day1Reflection({ mandala, onSave }: Day1ReflectionProps) {
     })
   }
 
-  // Check if all questions have been answered (at least 1 character)
-  const theme = selectedTheme ? REFLECTION_THEMES[selectedTheme] : null
-  const totalQuestions = theme?.questions.length || 0
-
-  const allQuestionsAnswered =
-    selectedTheme !== null &&
-    totalQuestions > 0 &&
-    Array.from({ length: totalQuestions }).every((_, idx) =>
-      answers[idx] && answers[idx].trim().length > 0
-    )
-
-  const currentAnswerValid = answers[currentStep] && answers[currentStep].trim().length > 0
-
-  if (showThemeSelection) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            2025년 회고
-          </h1>
-          <p className="text-gray-600">
-            아래 테마 중 하나를 선택하고 질문에 답변해주세요.
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-4">
-          {THEME_KEYS.map((themeKey) => {
-            const theme = REFLECTION_THEMES[themeKey]
-            return (
-              <div
-                key={themeKey}
-                className="border-2 border-gray-200 rounded-lg p-8 cursor-pointer hover:border-primary-500 hover:bg-primary-50 transition-all text-center"
-                onClick={() => handleThemeSelect(themeKey)}
-              >
-                <h3 className="font-semibold text-xl text-gray-900">
-                  {theme.title}
-                </h3>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    )
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSubmitAnswer()
+    }
   }
 
-  if (!selectedTheme || !theme) return null
-
-  const currentQuestion = theme.questions[currentStep]
-  const isLastQuestion = currentStep === totalQuestions - 1
-
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            2025년 회고
-          </h1>
-          <h2 className="text-xl font-semibold text-primary-700 mb-2">
-            {theme.title}
-          </h2>
-        </div>
-        <Button variant="outline" onClick={handleChangeTheme}>
-          테마 변경
-        </Button>
+    <div className="flex flex-col h-[calc(100vh-200px)] max-w-4xl mx-auto">
+      {/* Chat messages container */}
+      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
+        {messages.map((message, index) => (
+          <div key={index}>
+            {message.type === 'question' && (
+              <div className="flex justify-start">
+                <div className="max-w-[80%] bg-primary-100 text-primary-900 rounded-2xl rounded-tl-sm px-6 py-4 shadow-sm">
+                  <p className="text-base whitespace-pre-wrap">{message.content}</p>
+                </div>
+              </div>
+            )}
+
+            {message.type === 'answer' && (
+              <div className="flex justify-end">
+                <div className="max-w-[80%] bg-gray-700 text-white rounded-2xl rounded-tr-sm px-6 py-4 shadow-sm">
+                  <p className="text-base whitespace-pre-wrap">{message.content}</p>
+                </div>
+              </div>
+            )}
+
+            {message.type === 'theme-select' && (
+              <div className="space-y-4">
+                <div className="flex justify-start">
+                  <div className="max-w-[80%] bg-primary-100 text-primary-900 rounded-2xl rounded-tl-sm px-6 py-4 shadow-sm">
+                    <p className="text-base whitespace-pre-wrap">{message.content}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3 px-4">
+                  {THEME_KEYS.map((themeKey) => {
+                    const theme = REFLECTION_THEMES[themeKey]
+                    return (
+                      <button
+                        key={themeKey}
+                        onClick={() => handleThemeSelect(themeKey)}
+                        className="bg-white border-2 border-primary-200 hover:border-primary-500 hover:bg-primary-50 rounded-xl px-6 py-4 text-center transition-all transform hover:scale-105 shadow-sm"
+                      >
+                        <p className="font-semibold text-gray-900">{theme.title}</p>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+        <div ref={chatEndRef} />
       </div>
 
-      {/* Progress indicator */}
-      <div className="flex items-center gap-2">
-        <div className="text-sm text-gray-600">
-          질문 {currentStep + 1} / {totalQuestions}
+      {/* Input area */}
+      {selectedTheme && !isComplete && (
+        <div className="border-t bg-white px-4 py-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-end gap-3">
+              <div className="flex-1">
+                <textarea
+                  ref={inputRef}
+                  value={currentInput}
+                  onChange={(e) => setCurrentInput(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="답변을 입력하세요... (Enter: 전송, Shift+Enter: 줄바꿈)"
+                  rows={3}
+                  maxLength={REFLECTION_ANSWER_MAX_LENGTH}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-primary-500 focus:outline-none resize-none"
+                />
+                <div className="text-xs text-gray-500 mt-1 text-right">
+                  {currentInput.length} / {REFLECTION_ANSWER_MAX_LENGTH}
+                </div>
+              </div>
+              <Button
+                onClick={handleSubmitAnswer}
+                disabled={!currentInput.trim()}
+                size="lg"
+                className="mb-6"
+              >
+                전송
+              </Button>
+            </div>
+          </div>
         </div>
-        <div className="flex-1 bg-gray-200 rounded-full h-2">
-          <div
-            className="bg-primary-600 h-2 rounded-full transition-all"
-            style={{ width: `${((currentStep + 1) / totalQuestions) * 100}%` }}
-          />
+      )}
+
+      {/* Complete state - Save button */}
+      {isComplete && (
+        <div className="border-t bg-white px-4 py-6">
+          <div className="max-w-4xl mx-auto flex justify-center">
+            <Button onClick={handleSave} size="lg" className="px-12">
+              저장하고 다음 단계로
+            </Button>
+          </div>
         </div>
-      </div>
-
-      {/* Current question */}
-      <div className="space-y-4 bg-white p-6 rounded-lg shadow-md">
-        <label className="block font-medium text-gray-900 text-lg">
-          {currentStep + 1}. {currentQuestion}
-        </label>
-        <Textarea
-          value={answers[currentStep] || ''}
-          onChange={(e) => handleAnswerChange(currentStep, e.target.value)}
-          placeholder="자유롭게 답변해주세요..."
-          rows={8}
-          maxLength={REFLECTION_ANSWER_MAX_LENGTH}
-          autoFocus
-        />
-        <div className="text-sm text-gray-500 text-right">
-          {(answers[currentStep] || '').length} / {REFLECTION_ANSWER_MAX_LENGTH}
-        </div>
-      </div>
-
-      {/* Navigation buttons */}
-      <div className="flex justify-between pt-4">
-        <Button
-          variant="outline"
-          onClick={() => setCurrentStep(currentStep - 1)}
-          disabled={currentStep === 0}
-        >
-          이전 질문
-        </Button>
-
-        {!isLastQuestion ? (
-          <Button
-            onClick={() => setCurrentStep(currentStep + 1)}
-            disabled={!currentAnswerValid}
-          >
-            다음 질문
-          </Button>
-        ) : (
-          <Button
-            onClick={handleSave}
-            disabled={!allQuestionsAnswered}
-            size="lg"
-          >
-            저장하고 계속하기
-          </Button>
-        )}
-      </div>
+      )}
     </div>
   )
 }

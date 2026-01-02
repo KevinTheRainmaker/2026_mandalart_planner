@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { Mandala, MandalaUpdate } from '@/types'
 import { updateMandala as updateMandalaApi } from '@/lib/api'
+import { useMandalaStore } from '@/store'
 
 interface MandalaGridProps {
   mandala: Mandala
@@ -9,6 +10,7 @@ interface MandalaGridProps {
 
 export function MandalaGrid({ mandala, onUpdate }: MandalaGridProps) {
   const { center_goal, sub_goals, action_plans, ai_summary, name, commitment } = mandala
+  const { setMandala } = useMandalaStore()
 
   const [editableName, setEditableName] = useState(name || '')
   const [editableCommitment, setEditableCommitment] = useState(commitment || '')
@@ -36,7 +38,11 @@ export function MandalaGrid({ mandala, onUpdate }: MandalaGridProps) {
       setIsSaving(true)
       try {
         // Update directly via API to avoid triggering global loading state
-        await updateMandalaApi(mandala.id, { name: editableName })
+        const updated = await updateMandalaApi(mandala.id, { name: editableName })
+        // Update Zustand store to reflect changes in PDF
+        if (updated) {
+          setMandala(updated)
+        }
       } catch (error) {
         console.error('Failed to update name:', error)
         // Revert on error
@@ -52,7 +58,11 @@ export function MandalaGrid({ mandala, onUpdate }: MandalaGridProps) {
       setIsSaving(true)
       try {
         // Update directly via API to avoid triggering global loading state
-        await updateMandalaApi(mandala.id, { commitment: editableCommitment })
+        const updated = await updateMandalaApi(mandala.id, { commitment: editableCommitment })
+        // Update Zustand store to reflect changes in PDF
+        if (updated) {
+          setMandala(updated)
+        }
       } catch (error) {
         console.error('Failed to update commitment:', error)
         // Revert on error
