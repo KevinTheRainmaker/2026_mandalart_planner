@@ -5,7 +5,6 @@ import {
   AuthCallback,
   Dashboard,
   Day1,
-  Day2,
   Day3,
   Day4,
   Day5,
@@ -44,14 +43,6 @@ function App() {
           element={
             <ProtectedRoute>
               <Day1 />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/day/2"
-          element={
-            <ProtectedRoute>
-              <Day2 />
             </ProtectedRoute>
           }
         />

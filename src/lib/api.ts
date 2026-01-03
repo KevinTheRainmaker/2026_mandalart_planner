@@ -8,9 +8,23 @@ import type {
 } from '@/types'
 
 /**
- * Create a new Mandala
+ * Create a new Mandala (or return existing one if already exists)
  */
 export async function createMandala(data: MandalaCreate): Promise<Mandala> {
+  // First try to get existing mandala
+  const { data: existing } = await supabase
+    .from('mandalas')
+    .select('*')
+    .eq('user_id', data.user_id)
+    .eq('year', data.year)
+    .maybeSingle() as any
+
+  if (existing) {
+    console.log('Mandala already exists, returning existing one')
+    return existing as Mandala
+  }
+
+  // Create new mandala
   const { data: mandala, error } = await supabase
     .from('mandalas')
     .insert(data as any)
@@ -18,6 +32,20 @@ export async function createMandala(data: MandalaCreate): Promise<Mandala> {
     .single() as any
 
   if (error) {
+    // If duplicate key error, try to fetch the existing one
+    if (error.code === '23505') {
+      console.log('Duplicate key error, fetching existing mandala')
+      const { data: fallback } = await supabase
+        .from('mandalas')
+        .select('*')
+        .eq('user_id', data.user_id)
+        .eq('year', data.year)
+        .single() as any
+      
+      if (fallback) {
+        return fallback as Mandala
+      }
+    }
     console.error('Error creating mandala:', error)
     throw new Error(`Failed to create mandala: ${error.message}`)
   }

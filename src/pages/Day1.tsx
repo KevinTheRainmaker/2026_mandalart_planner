@@ -16,16 +16,16 @@ export function Day1() {
   }) => {
     if (!mandala) return
 
-    // Update mandala with reflection data and mark step as completed
+    // Update mandala with reflection data and mark steps 1 and 2 as completed (step 2 is removed)
     await updateMandala({
       reflection_theme: data.reflection_theme,
       reflection_answers: data.reflection_answers,
-      completed_days: [...(mandala.completed_days || []), 1],
-      current_day: 2,
+      completed_days: [...(mandala.completed_days || []), 1, 2],
+      current_day: 3,
     })
 
-    // Proceed to next step immediately
-    navigate('/day/2')
+    // Skip step 2, proceed directly to step 3
+    navigate('/day/3')
   }
 
   if (isLoading) {

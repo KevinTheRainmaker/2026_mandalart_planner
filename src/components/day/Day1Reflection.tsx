@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/common'
 import { REFLECTION_THEMES, THEME_KEYS, REFLECTION_ANSWER_MAX_LENGTH } from '@/constants'
+import { generateNextQuestion } from '@/services/chatService'
 import type { Mandala, ReflectionThemeKey, ReflectionAnswers } from '@/types'
 
 interface Day1ReflectionProps {
@@ -12,7 +13,7 @@ interface Day1ReflectionProps {
 }
 
 interface ChatMessage {
-  type: 'question' | 'answer' | 'theme-select'
+  type: 'question' | 'answer' | 'theme-select' | 'loading'
   content: string
   questionIndex?: number
 }
@@ -26,6 +27,7 @@ export function Day1Reflection({ mandala, onSave }: Day1ReflectionProps) {
   const [currentInput, setCurrentInput] = useState('')
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [isComplete, setIsComplete] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const chatEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -41,7 +43,7 @@ export function Day1Reflection({ mandala, onSave }: Day1ReflectionProps) {
       setMessages([
         {
           type: 'question',
-          content: '안녕하세요! 2025년 회고를 시작합니다.',
+          content: '안녕하세요! 2025년 회고를 시작합니다. 🎉',
         },
         {
           type: 'theme-select',
@@ -54,7 +56,7 @@ export function Day1Reflection({ mandala, onSave }: Day1ReflectionProps) {
       const restoredMessages: ChatMessage[] = [
         {
           type: 'question',
-          content: '안녕하세요! 2025년 회고를 시작합니다.',
+          content: '안녕하세요! 2025년 회고를 시작합니다. 🎉',
         },
       ]
 
@@ -96,22 +98,89 @@ export function Day1Reflection({ mandala, onSave }: Day1ReflectionProps) {
       if (answeredCount === theme.questions.length) {
         setIsComplete(true)
       } else {
-        // Show next question
-        setTimeout(() => {
-          setMessages((prev) => [
-            ...prev,
-            {
-              type: 'question',
-              content: theme.questions[answeredCount],
-              questionIndex: answeredCount,
-            },
-          ])
-        }, 500)
+        // Generate next question with LLM
+        generateLLMQuestion(answeredCount, answerObj)
       }
     }
-  }, [selectedTheme, mandala.reflection_theme, mandala.reflection_answers])
+  }, [])
 
-  const handleThemeSelect = (themeKey: ReflectionThemeKey) => {
+  const generateLLMQuestion = async (questionIndex: number, currentAnswers: Record<number, string>) => {
+    if (!selectedTheme) return
+
+    const theme = REFLECTION_THEMES[selectedTheme]
+
+    // Check if we've completed all questions
+    if (questionIndex >= theme.questions.length) {
+      setIsComplete(true)
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: 'question',
+          content: '모든 질문에 답변해주셔서 감사합니다! 🙏\n저장하고 다음 단계로 진행하시겠어요?',
+        },
+      ])
+      return
+    }
+
+    setIsLoading(true)
+    setMessages((prev) => [...prev, { type: 'loading', content: '' }])
+
+    try {
+      // Build previous answers for context
+      const previousAnswers = Object.entries(currentAnswers).map(([key, answer]) => ({
+        question: theme.questions[parseInt(key)] || '',
+        answer,
+      }))
+
+      const response = await generateNextQuestion({
+        theme: selectedTheme,
+        currentQuestionIndex: questionIndex,
+        previousAnswers,
+      })
+
+      // Remove loading message and add question
+      setMessages((prev) => {
+        const withoutLoading = prev.filter((m) => m.type !== 'loading')
+        
+        // Add summary if provided
+        const newMessages: ChatMessage[] = [...withoutLoading]
+        
+        if (response.summary) {
+          newMessages.push({
+            type: 'question',
+            content: response.summary,
+          })
+        }
+        
+        newMessages.push({
+          type: 'question',
+          content: response.question,
+          questionIndex,
+        })
+        
+        return newMessages
+      })
+
+      setCurrentQuestionIndex(questionIndex)
+      inputRef.current?.focus()
+    } catch (error) {
+      console.error('Failed to generate question:', error)
+      // Fallback to static question
+      const question = theme.questions[questionIndex]
+      setMessages((prev) => [
+        ...prev.filter((m) => m.type !== 'loading'),
+        {
+          type: 'question',
+          content: question,
+          questionIndex,
+        },
+      ])
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleThemeSelect = async (themeKey: ReflectionThemeKey) => {
     const theme = REFLECTION_THEMES[themeKey]
     setSelectedTheme(themeKey)
 
@@ -124,23 +193,14 @@ export function Day1Reflection({ mandala, onSave }: Day1ReflectionProps) {
       },
     ])
 
-    // Show first question after a delay
+    // Generate first question with LLM
     setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          type: 'question',
-          content: theme.questions[0],
-          questionIndex: 0,
-        },
-      ])
-      setCurrentQuestionIndex(0)
-      inputRef.current?.focus()
-    }, 800)
+      generateLLMQuestion(0, {})
+    }, 500)
   }
 
-  const handleSubmitAnswer = () => {
-    if (!currentInput.trim() || !selectedTheme) return
+  const handleSubmitAnswer = async () => {
+    if (!currentInput.trim() || !selectedTheme || isLoading) return
 
     const theme = REFLECTION_THEMES[selectedTheme]
 
@@ -162,20 +222,11 @@ export function Day1Reflection({ mandala, onSave }: Day1ReflectionProps) {
     setAnswers(newAnswers)
     setCurrentInput('')
 
-    // Move to next question or complete
+    // Move to next question
     const nextIndex = currentQuestionIndex + 1
     if (nextIndex < theme.questions.length) {
       setTimeout(() => {
-        setMessages((prev) => [
-          ...prev,
-          {
-            type: 'question',
-            content: theme.questions[nextIndex],
-            questionIndex: nextIndex,
-          },
-        ])
-        setCurrentQuestionIndex(nextIndex)
-        inputRef.current?.focus()
+        generateLLMQuestion(nextIndex, newAnswers)
       }, 800)
     } else {
       // All questions answered
@@ -185,7 +236,7 @@ export function Day1Reflection({ mandala, onSave }: Day1ReflectionProps) {
           ...prev,
           {
             type: 'question',
-            content: '모든 질문에 답변해주셔서 감사합니다! 저장하고 다음 단계로 진행하시겠어요?',
+            content: '모든 질문에 답변해주셔서 감사합니다! 🙏\n저장하고 다음 단계로 진행하시겠어요?',
           },
         ])
       }, 800)
@@ -236,6 +287,18 @@ export function Day1Reflection({ mandala, onSave }: Day1ReflectionProps) {
               </div>
             )}
 
+            {message.type === 'loading' && (
+              <div className="flex justify-start">
+                <div className="max-w-[80%] bg-primary-100 text-primary-900 rounded-2xl rounded-tl-sm px-6 py-4 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                </div>
+              </div>
+            )}
+
             {message.type === 'theme-select' && (
               <div className="space-y-4">
                 <div className="flex justify-start">
@@ -278,7 +341,8 @@ export function Day1Reflection({ mandala, onSave }: Day1ReflectionProps) {
                   placeholder="답변을 입력하세요... (Enter: 전송, Shift+Enter: 줄바꿈)"
                   rows={3}
                   maxLength={REFLECTION_ANSWER_MAX_LENGTH}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-primary-500 focus:outline-none resize-none"
+                  disabled={isLoading}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-primary-500 focus:outline-none resize-none disabled:bg-gray-100"
                 />
                 <div className="text-xs text-gray-500 mt-1 text-right">
                   {currentInput.length} / {REFLECTION_ANSWER_MAX_LENGTH}
@@ -286,7 +350,7 @@ export function Day1Reflection({ mandala, onSave }: Day1ReflectionProps) {
               </div>
               <Button
                 onClick={handleSubmitAnswer}
-                disabled={!currentInput.trim()}
+                disabled={!currentInput.trim() || isLoading}
                 size="lg"
                 className="mb-6"
               >
