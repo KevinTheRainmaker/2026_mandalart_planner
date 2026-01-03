@@ -194,7 +194,7 @@ export function Day1Reflection({ mandala, onSave }: Day1ReflectionProps) {
       ...prev.filter((m) => m.type !== 'theme-select'),
       {
         type: 'answer',
-        content: `테마: ${theme.title}`,
+        content: theme.title,
       },
     ])
 
