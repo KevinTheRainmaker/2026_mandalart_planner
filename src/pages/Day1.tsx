@@ -25,7 +25,7 @@ export function Day1() {
     })
 
     // Skip step 2, proceed directly to step 3
-    navigate('/day/3')
+    navigate('/step/3')
   }
 
   if (isLoading) {

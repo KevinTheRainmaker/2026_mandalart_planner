@@ -39,7 +39,7 @@ function App() {
 
         {/* Day Routes */}
         <Route
-          path="/day/1"
+          path="/step/1"
           element={
             <ProtectedRoute>
               <Day1 />
@@ -47,7 +47,7 @@ function App() {
           }
         />
         <Route
-          path="/day/3"
+          path="/step/3"
           element={
             <ProtectedRoute>
               <Day3 />
@@ -55,7 +55,7 @@ function App() {
           }
         />
         <Route
-          path="/day/4"
+          path="/step/4"
           element={
             <ProtectedRoute>
               <Day4 />
@@ -63,7 +63,7 @@ function App() {
           }
         />
         <Route
-          path="/day/5"
+          path="/step/5"
           element={
             <ProtectedRoute>
               <Day5 />
@@ -71,7 +71,7 @@ function App() {
           }
         />
         <Route
-          path="/day/6"
+          path="/step/6"
           element={
             <ProtectedRoute>
               <Day6 />
@@ -79,7 +79,7 @@ function App() {
           }
         />
         <Route
-          path="/day/7"
+          path="/step/7"
           element={
             <ProtectedRoute>
               <Day7 />
@@ -87,7 +87,7 @@ function App() {
           }
         />
         <Route
-          path="/day/8"
+          path="/step/8"
           element={
             <ProtectedRoute>
               <Day8 />
@@ -95,7 +95,7 @@ function App() {
           }
         />
         <Route
-          path="/day/9"
+          path="/step/9"
           element={
             <ProtectedRoute>
               <Day9 />
@@ -103,7 +103,7 @@ function App() {
           }
         />
         <Route
-          path="/day/10"
+          path="/step/10"
           element={
             <ProtectedRoute>
               <Day10 />
@@ -111,7 +111,7 @@ function App() {
           }
         />
         <Route
-          path="/day/11"
+          path="/step/11"
           element={
             <ProtectedRoute>
               <Day11 />
@@ -119,7 +119,7 @@ function App() {
           }
         />
         <Route
-          path="/day/12"
+          path="/step/12"
           element={
             <ProtectedRoute>
               <Day12 />
@@ -127,7 +127,7 @@ function App() {
           }
         />
         <Route
-          path="/day/13"
+          path="/step/13"
           element={
             <ProtectedRoute>
               <Day13 />
@@ -135,7 +135,7 @@ function App() {
           }
         />
         <Route
-          path="/day/14"
+          path="/step/14"
           element={
             <ProtectedRoute>
               <Day14 />
@@ -145,7 +145,7 @@ function App() {
 
         {/* Other day routes (will be implemented) */}
         <Route
-          path="/day/:day"
+          path="/step/:day"
           element={
             <ProtectedRoute>
               <div className="min-h-screen flex items-center justify-center">

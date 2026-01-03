@@ -1,10 +1,40 @@
+import { useState, useRef, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { Menu, X } from 'lucide-react'
 import { useAuth } from '@/hooks'
-import { Button } from '@/components/common'
 
 export function Header() {
+  const navigate = useNavigate()
+  const location = useLocation()
   const { user, isAuthenticated, signOut } = useAuth()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   if (!isAuthenticated) return null
+
+  const isOnDashboard = location.pathname === '/dashboard'
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleDashboard = () => {
+    setIsMenuOpen(false)
+    navigate('/dashboard')
+  }
+
+  const handleSignOut = () => {
+    setIsMenuOpen(false)
+    signOut()
+  }
 
   return (
     <header className="bg-white shadow-sm">
@@ -14,11 +44,50 @@ export function Header() {
             2026 만다라트 목표 설계
           </h1>
 
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">{user?.email}</span>
-            <Button variant="outline" size="sm" onClick={signOut}>
-              로그아웃
-            </Button>
+          {/* Hamburger Menu */}
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              aria-label="메뉴 열기"
+            >
+              {isMenuOpen ? (
+                <X className="w-6 h-6 text-gray-700" />
+              ) : (
+                <Menu className="w-6 h-6 text-gray-700" />
+              )}
+            </button>
+
+            {/* Dropdown Menu */}
+            {isMenuOpen && (
+              <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                {/* User email */}
+                <div className="px-4 py-2 border-b border-gray-100">
+                  <p className="text-sm text-gray-500">로그인 계정</p>
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {user?.email}
+                  </p>
+                </div>
+
+                {/* Menu items */}
+                <div className="py-1">
+                  {!isOnDashboard && (
+                    <button
+                      onClick={handleDashboard}
+                      className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      대시보드
+                    </button>
+                  )}
+                  <button
+                    onClick={handleSignOut}
+                    className="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    로그아웃
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

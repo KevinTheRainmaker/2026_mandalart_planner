@@ -98,10 +98,10 @@ export function Day14() {
           {/* Title */}
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              종합 리포트 (단계 14)
+              종합 리포트
             </h1>
             <p className="text-gray-600">
-              14단계 여정을 AI가 분석한 종합 리포트입니다.
+              지금까지의 여정을 AI가 분석한 종합 리포트입니다.
             </p>
           </div>
 

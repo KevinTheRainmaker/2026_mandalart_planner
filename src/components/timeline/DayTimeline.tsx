@@ -63,7 +63,7 @@ export function DayTimeline({ mandala }: DayTimelineProps) {
   }
 
   const handleDayClick = (day: number) => {
-    navigate(`/day/${day}`)
+    navigate(`/step/${day}`)
   }
 
   return (

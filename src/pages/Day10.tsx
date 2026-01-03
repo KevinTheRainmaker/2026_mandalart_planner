@@ -22,7 +22,7 @@ export function Day10() {
     })
 
     // Proceed to next step immediately
-    navigate('/day/11')
+    navigate('/step/11')
   }
 
   if (isLoading) {

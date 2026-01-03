@@ -63,7 +63,7 @@ export function AuthCallback() {
 
             console.log('Mandala created:', newMandala)
             console.log('Redirecting to day 1')
-            navigate('/day/1', { replace: true })
+            navigate('/step/1', { replace: true })
           }
         } else {
           // No session, redirect to home

@@ -52,7 +52,7 @@ export function DayActionPlan({
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          액션플랜 작성 (Day {dayNumber})
+          액션플랜 작성 {progressNumber}
         </h1>
         <p className="text-gray-600">
           하위 목표를 달성하기 위한 구체적인 행동을 계획해보세요.
