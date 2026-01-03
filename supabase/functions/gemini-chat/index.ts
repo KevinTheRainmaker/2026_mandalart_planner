@@ -66,7 +66,7 @@ async function handleGenerateQuestion(
     isFirstQuestion: boolean
   }
 
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' })
 
   const conversationHistory = previousAnswers
     .map((qa, i) => `질문 ${i + 1}: ${qa.question}\n답변: ${qa.answer}`)
