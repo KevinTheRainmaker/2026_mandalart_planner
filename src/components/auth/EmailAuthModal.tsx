@@ -114,12 +114,12 @@ export function EmailAuthModal({ isOpen, onClose, mode }: EmailAuthModalProps) {
         {mode === 'start' && (
           <div className="space-y-3">
             <Checkbox
-              label="(필수) 개인정보 수집 및 이용에 동의합니다"
+              label="(필수) 서비스 이용을 위한 개인정보 수집에 동의합니다"
               checked={consent}
               onChange={(e) => setConsent(e.target.checked)}
             />
             <Checkbox
-              label="(선택) 마케팅 정보 수신에 동의합니다"
+              label="(선택) 현재 서비스와 향후 출시될 새로운 서비스 소식을 이메일로 받아보고 싶어요"
               checked={marketingConsent}
               onChange={(e) => setMarketingConsent(e.target.checked)}
             />
