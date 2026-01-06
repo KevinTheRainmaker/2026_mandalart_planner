@@ -38,10 +38,9 @@ export function EmailAuthModal({ isOpen, onClose, mode }: EmailAuthModalProps) {
       const { error: authError } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${import.meta.env.VITE_SITE_URL}/auth/callback`,
+          emailRedirectTo: `${import.meta.env.VITE_SITE_URL}/auth/callback?mode=${mode}`,
           data: {
             marketing_consent: mode === 'start' ? marketingConsent : false,
-            auth_mode: mode,
           },
         },
       })

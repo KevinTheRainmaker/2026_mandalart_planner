@@ -23,7 +23,9 @@ export function AuthCallback() {
 
         if (session) {
           console.log('Session found:', session.user.email)
-          const authMode = session.user.user_metadata?.auth_mode || 'start'
+          // auth_mode를 URL 쿼리 파라미터에서 읽음 (user_metadata는 최초 생성 시 고정되므로 사용 불가)
+          const urlParams = new URLSearchParams(window.location.search)
+          const authMode = urlParams.get('mode') || 'start'
           console.log('Auth mode:', authMode)
 
           // Check if user has existing mandala for 2026
