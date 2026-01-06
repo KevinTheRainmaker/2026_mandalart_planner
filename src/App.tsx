@@ -18,6 +18,7 @@ import {
   Day12,
   Day13,
   Day14,
+  MandaratEdit,
 } from './pages'
 
 function App() {
@@ -150,6 +151,16 @@ function App() {
           element={
             <ProtectedRoute>
               <Day14 />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Mandarat Edit */}
+        <Route
+          path="/mandala/edit"
+          element={
+            <ProtectedRoute>
+              <MandaratEdit />
             </ProtectedRoute>
           }
         />

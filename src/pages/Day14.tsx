@@ -1,12 +1,14 @@
 import { useState, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Container, Header } from '@/components/layout'
 import { MandalaGrid } from '@/components/mandala'
 import { Button, Loading } from '@/components/common'
 import { useAuth, useMandala } from '@/hooks'
-import { generateAIReport, generateReportPDF, generateMandalaPDF } from '@/services'
+import { generateAIReport, generateMandalaPDF } from '@/services'
 import type { AISummary } from '@/types'
 
 export function Day14() {
+  const navigate = useNavigate()
   const { user } = useAuth()
   const { mandala, isLoading, updateMandala } = useMandala(user?.id)
   const [isGenerating, setIsGenerating] = useState(false)
@@ -39,16 +41,8 @@ export function Day14() {
     }
   }
 
-  const handleDownloadReport = async () => {
-    if (!aiReport) return
-
-    try {
-      const today = new Date().toISOString().split('T')[0]
-      await generateReportPDF(aiReport, `mandala-report-${today}.pdf`)
-    } catch (error) {
-      console.error('Failed to download report PDF:', error)
-      alert('PDF 다운로드에 실패했습니다. 다시 시도해주세요.')
-    }
+  const handleEditMandala = () => {
+    navigate('/mandala/edit')
   }
 
   const handleDownloadMandala = async () => {
@@ -177,10 +171,10 @@ export function Day14() {
                 </p>
               </div>
 
-              {/* Download Report Button */}
+              {/* Edit Mandala Button */}
               <div className="flex justify-center">
-                <Button onClick={handleDownloadReport} variant="secondary" size="lg">
-                  📄 AI 리포트 PDF 다운로드
+                <Button onClick={handleEditMandala} variant="primary" size="lg">
+                  ✏️ 만다라트 수정하러 가기
                 </Button>
               </div>
             </div>
