@@ -198,7 +198,7 @@ export function Day13() {
                 AI 종합 리포트 생성
               </h2>
               <p className="text-gray-600 mb-6">
-                AI가 회고와 목표를 분석하여 종합 리포트를 생성합니다.
+                AI가 당신의 회고와 목표를 분석하여 리포트를 생성합니다. 구체성(Specific), 측정 가능성(Measurable), 달성 가능성(Achievable), 관련성(Relevant), 시간 제한(Time-bound)이라는 다섯 가지 지표를 기반으로 당신의 만다라트 차트를 분석하고 피드백을 제공합니다. 피드백을 바탕으로 만다라트 차트를 개선해보세요.
               </p>
               <Button
                 onClick={handleGenerateReport}
