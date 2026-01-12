@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { PencilSimple, ChartBar } from '@phosphor-icons/react'
+import { PencilSimple, ChartBar, ArrowClockwise } from '@phosphor-icons/react'
 import { Container, Header } from '@/components/layout'
 import { MandalaGrid, type MandalaGridRef } from '@/components/mandala'
 import { Button, Loading } from '@/components/common'
@@ -8,6 +8,33 @@ import { useAuth, useMandala } from '@/hooks'
 import { useMandalaStore } from '@/store'
 import { generateAIReport, generateMandalaPDF } from '@/services'
 import type { AISummary } from '@/types'
+
+// 만다라 콘텐츠 해시 생성 (AI 분석에 영향을 주는 필드들만)
+function getContentHash(mandala: {
+  reflection_theme?: string | null
+  reflection_answers?: Record<string, string>
+  reflection_notes?: string | null
+  center_goal?: string | null
+  sub_goals?: string[]
+  action_plans?: Record<string, string[]>
+}): string {
+  const content = JSON.stringify({
+    reflection_theme: mandala.reflection_theme || '',
+    reflection_answers: mandala.reflection_answers || {},
+    reflection_notes: mandala.reflection_notes || '',
+    center_goal: mandala.center_goal || '',
+    sub_goals: mandala.sub_goals || [],
+    action_plans: mandala.action_plans || {},
+  })
+  // 간단한 해시 생성
+  let hash = 0
+  for (let i = 0; i < content.length; i++) {
+    const char = content.charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash = hash & hash
+  }
+  return hash.toString()
+}
 
 export function Day13() {
   const navigate = useNavigate()
@@ -19,6 +46,29 @@ export function Day13() {
   )
   const mandalaGridRef = useRef<HTMLDivElement>(null)
   const mandalaGridComponentRef = useRef<MandalaGridRef>(null)
+  
+  // AI 리포트 생성 시점의 콘텐츠 해시 저장
+  const [lastReportHash, setLastReportHash] = useState<string | null>(null)
+
+  // 현재 만다라 콘텐츠 해시
+  const currentHash = useMemo(() => {
+    if (!mandala) return ''
+    return getContentHash(mandala)
+  }, [mandala])
+
+  // 초기 로드 시 마지막 리포트 해시 설정
+  useEffect(() => {
+    if (mandala?.ai_summary && lastReportHash === null) {
+      // 이미 리포트가 있으면 현재 해시를 기준으로 설정
+      setLastReportHash(currentHash)
+    }
+  }, [mandala?.ai_summary, currentHash, lastReportHash])
+
+  // 실제 콘텐츠 변경 여부 확인
+  const hasContentChanges = useMemo(() => {
+    if (!aiReport || !lastReportHash) return false
+    return currentHash !== lastReportHash
+  }, [aiReport, currentHash, lastReportHash])
 
   const handleGenerateReport = async () => {
     if (!mandala) return
@@ -29,6 +79,9 @@ export function Day13() {
       const report = await generateAIReport(mandala)
       console.log('AI report generated successfully:', report)
       setAiReport(report)
+      
+      // 리포트 생성 시점의 해시 저장
+      setLastReportHash(currentHash)
 
       await updateMandala({
         ai_summary: report,
@@ -39,6 +92,32 @@ export function Day13() {
       console.error('Failed to generate AI report:', error)
       const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류'
       alert(`AI 리포트 생성에 실패했습니다.\n\n오류: ${errorMessage}\n\n브라우저 콘솔을 확인해주세요.`)
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
+  const handleRegenerateReport = async () => {
+    if (!mandala || !hasContentChanges) return
+
+    setIsGenerating(true)
+    try {
+      console.log('Regenerating AI report with updated content...')
+      const report = await generateAIReport(mandala)
+      console.log('AI report regenerated successfully:', report)
+      setAiReport(report)
+      
+      // 새 리포트 생성 시점의 해시로 업데이트
+      setLastReportHash(currentHash)
+
+      await updateMandala({
+        ai_summary: report,
+      })
+      console.log('Mandala updated with regenerated AI report')
+    } catch (error) {
+      console.error('Failed to regenerate AI report:', error)
+      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류'
+      alert(`AI 리포트 재생성에 실패했습니다.\n\n오류: ${errorMessage}`)
     } finally {
       setIsGenerating(false)
     }
@@ -185,12 +264,29 @@ export function Day13() {
                 </p>
               </div>
 
-              {/* Edit Mandala Button */}
-              <div className="flex justify-center">
+              {/* Edit Mandala & Regenerate Buttons */}
+              <div className="flex justify-center gap-4 flex-wrap">
                 <Button onClick={handleEditMandala} variant="primary" size="lg" className="flex items-center gap-2">
                   <PencilSimple size={20} weight="bold" /> 만다라트 수정하러 가기
                 </Button>
+                <Button
+                  onClick={handleRegenerateReport}
+                  variant="outline"
+                  size="lg"
+                  disabled={!hasContentChanges || isGenerating}
+                  className="flex items-center gap-2"
+                  title={hasContentChanges ? '수정된 내용으로 AI 피드백을 다시 받습니다' : '수정된 내용이 없습니다'}
+                >
+                  <ArrowClockwise size={20} weight="bold" /> AI 피드백 다시 받기
+                </Button>
               </div>
+
+              {/* Change indicator */}
+              {hasContentChanges && (
+                <p className="text-center text-sm text-amber-600">
+                  ⚠️ 만다라트가 수정되었습니다. AI 피드백을 다시 받아보세요!
+                </p>
+              )}
             </div>
           )}
 
