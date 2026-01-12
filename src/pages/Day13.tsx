@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PencilSimple, ChartBar } from '@phosphor-icons/react'
 import { Container, Header } from '@/components/layout'
-import { MandalaGrid } from '@/components/mandala'
+import { MandalaGrid, type MandalaGridRef } from '@/components/mandala'
 import { Button, Loading } from '@/components/common'
 import { useAuth, useMandala } from '@/hooks'
 import { generateAIReport, generateMandalaPDF } from '@/services'
@@ -17,6 +17,7 @@ export function Day13() {
     mandala?.ai_summary || null
   )
   const mandalaGridRef = useRef<HTMLDivElement>(null)
+  const mandalaGridComponentRef = useRef<MandalaGridRef>(null)
 
   const handleGenerateReport = async () => {
     if (!mandala) return
@@ -49,13 +50,18 @@ export function Day13() {
   const handleDownloadMandala = async () => {
     if (!mandalaGridRef.current || !mandala) return
 
-    console.log('Downloading PDF with mandala data:', {
-      name: mandala.name,
-      commitment: mandala.commitment,
-      center_goal: mandala.center_goal
-    })
-
     try {
+      // 먼저 이름과 다짐을 저장
+      if (mandalaGridComponentRef.current) {
+        await mandalaGridComponentRef.current.saveChanges()
+      }
+
+      console.log('Downloading PDF with mandala data:', {
+        name: mandala.name,
+        commitment: mandala.commitment,
+        center_goal: mandala.center_goal
+      })
+
       const today = new Date().toISOString().split('T')[0]
       await generateMandalaPDF(mandalaGridRef.current, mandala, `mandala-chart-${today}.pdf`)
     } catch (error) {
@@ -191,7 +197,7 @@ export function Day13() {
                 이름과 다짐을 입력하고 PDF로 저장하세요.
               </p>
               <div ref={mandalaGridRef}>
-                <MandalaGrid mandala={mandala} onUpdate={updateMandala} />
+                <MandalaGrid ref={mandalaGridComponentRef} mandala={mandala} onUpdate={updateMandala} />
               </div>
               <div className="flex justify-center mt-6">
                 <Button onClick={handleDownloadMandala} variant="secondary" size="lg" className="flex items-center gap-2">

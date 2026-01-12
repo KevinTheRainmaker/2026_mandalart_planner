@@ -1,1 +1,1 @@
-export { MandalaGrid } from './MandalaGrid'
+export { MandalaGrid, type MandalaGridRef } from './MandalaGrid'

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, forwardRef, useImperativeHandle } from 'react'
 import type { Mandala, MandalaUpdate } from '@/types'
 import { updateMandala as updateMandalaApi } from '@/lib/api'
 import { useMandalaStore } from '@/store'
@@ -8,7 +8,14 @@ interface MandalaGridProps {
   onUpdate?: (updates: MandalaUpdate) => Promise<void>
 }
 
-export function MandalaGrid({ mandala, onUpdate: _onUpdate }: MandalaGridProps) {
+export interface MandalaGridRef {
+  saveChanges: () => Promise<void>
+}
+
+export const MandalaGrid = forwardRef<MandalaGridRef, MandalaGridProps>(function MandalaGrid(
+  { mandala, onUpdate: _onUpdate },
+  ref
+) {
   const { center_goal, sub_goals, action_plans, ai_summary, name, commitment } = mandala
   const { setMandala } = useMandalaStore()
 
@@ -32,6 +39,43 @@ export function MandalaGrid({ mandala, onUpdate: _onUpdate }: MandalaGridProps) 
   const handleCommitmentChange = (value: string) => {
     setEditableCommitment(value)
   }
+
+  // Save name and commitment to API
+  const saveNameAndCommitment = async () => {
+    if (!mandala.id) return
+
+    const updates: MandalaUpdate = {}
+    if (editableName !== name) {
+      updates.name = editableName
+    }
+    if (editableCommitment !== commitment) {
+      updates.commitment = editableCommitment
+    }
+
+    if (Object.keys(updates).length === 0) {
+      console.log('No changes to save')
+      return
+    }
+
+    setIsSaving(true)
+    try {
+      const updated = await updateMandalaApi(mandala.id, updates)
+      if (updated) {
+        setMandala(updated)
+        console.log('Name and commitment saved:', { name: updated.name, commitment: updated.commitment })
+      }
+    } catch (error) {
+      console.error('Failed to save name/commitment:', error)
+      throw error
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // Expose saveChanges to parent via ref
+  useImperativeHandle(ref, () => ({
+    saveChanges: saveNameAndCommitment,
+  }))
 
   const handleNameBlur = async () => {
     if (editableName !== name && mandala.id) {
@@ -220,4 +264,4 @@ export function MandalaGrid({ mandala, onUpdate: _onUpdate }: MandalaGridProps) 
       </div>
     </div>
   )
-}
+})
