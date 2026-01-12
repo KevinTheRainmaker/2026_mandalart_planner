@@ -5,6 +5,7 @@ import { Container, Header } from '@/components/layout'
 import { MandalaGrid, type MandalaGridRef } from '@/components/mandala'
 import { Button, Loading } from '@/components/common'
 import { useAuth, useMandala } from '@/hooks'
+import { useMandalaStore } from '@/store'
 import { generateAIReport, generateMandalaPDF } from '@/services'
 import type { AISummary } from '@/types'
 
@@ -56,14 +57,20 @@ export function Day13() {
         await mandalaGridComponentRef.current.saveChanges()
       }
 
+      // 저장 후 Zustand store에서 최신 mandala 가져오기
+      const latestMandala = useMandalaStore.getState().mandala
+      if (!latestMandala) {
+        throw new Error('Mandala data not found after save')
+      }
+
       console.log('Downloading PDF with mandala data:', {
-        name: mandala.name,
-        commitment: mandala.commitment,
-        center_goal: mandala.center_goal
+        name: latestMandala.name,
+        commitment: latestMandala.commitment,
+        center_goal: latestMandala.center_goal
       })
 
       const today = new Date().toISOString().split('T')[0]
-      await generateMandalaPDF(mandalaGridRef.current, mandala, `mandala-chart-${today}.pdf`)
+      await generateMandalaPDF(mandalaGridRef.current, latestMandala, `mandala-chart-${today}.pdf`)
     } catch (error) {
       console.error('Failed to download Mandala PDF:', error)
       alert('PDF 다운로드에 실패했습니다. 다시 시도해주세요.')
