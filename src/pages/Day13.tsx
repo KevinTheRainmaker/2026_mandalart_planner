@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useEffect } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PencilSimple, ChartBar, ArrowClockwise } from '@phosphor-icons/react'
 import { Container, Header } from '@/components/layout'
@@ -46,9 +46,6 @@ export function Day13() {
   )
   const mandalaGridRef = useRef<HTMLDivElement>(null)
   const mandalaGridComponentRef = useRef<MandalaGridRef>(null)
-  
-  // AI 리포트 생성 시점의 콘텐츠 해시 저장
-  const [lastReportHash, setLastReportHash] = useState<string | null>(null)
 
   // 현재 만다라 콘텐츠 해시
   const currentHash = useMemo(() => {
@@ -56,19 +53,13 @@ export function Day13() {
     return getContentHash(mandala)
   }, [mandala])
 
-  // 초기 로드 시 마지막 리포트 해시 설정
-  useEffect(() => {
-    if (mandala?.ai_summary && lastReportHash === null) {
-      // 이미 리포트가 있으면 현재 해시를 기준으로 설정
-      setLastReportHash(currentHash)
-    }
-  }, [mandala?.ai_summary, currentHash, lastReportHash])
-
-  // 실제 콘텐츠 변경 여부 확인
+  // 실제 콘텐츠 변경 여부 확인 (저장된 해시와 현재 해시 비교)
   const hasContentChanges = useMemo(() => {
-    if (!aiReport || !lastReportHash) return false
-    return currentHash !== lastReportHash
-  }, [aiReport, currentHash, lastReportHash])
+    // AI 리포트가 없거나 저장된 해시가 없으면 false
+    const storedHash = mandala?.ai_summary?.content_hash
+    if (!aiReport || !storedHash) return false
+    return currentHash !== storedHash
+  }, [aiReport, currentHash, mandala?.ai_summary?.content_hash])
 
   const handleGenerateReport = async () => {
     if (!mandala) return
@@ -78,13 +69,17 @@ export function Day13() {
       console.log('Starting AI report generation...')
       const report = await generateAIReport(mandala)
       console.log('AI report generated successfully:', report)
-      setAiReport(report)
       
-      // 리포트 생성 시점의 해시 저장
-      setLastReportHash(currentHash)
+      // 리포트에 현재 해시 포함
+      const reportWithHash: AISummary = {
+        ...report,
+        content_hash: currentHash,
+      }
+      
+      setAiReport(reportWithHash)
 
       await updateMandala({
-        ai_summary: report,
+        ai_summary: reportWithHash,
         completed_days: [...(mandala.completed_days || []), 13],
       })
       console.log('Mandala updated with AI report')
@@ -105,13 +100,17 @@ export function Day13() {
       console.log('Regenerating AI report with updated content...')
       const report = await generateAIReport(mandala)
       console.log('AI report regenerated successfully:', report)
-      setAiReport(report)
       
-      // 새 리포트 생성 시점의 해시로 업데이트
-      setLastReportHash(currentHash)
+      // 리포트에 현재 해시 포함
+      const reportWithHash: AISummary = {
+        ...report,
+        content_hash: currentHash,
+      }
+      
+      setAiReport(reportWithHash)
 
       await updateMandala({
-        ai_summary: report,
+        ai_summary: reportWithHash,
       })
       console.log('Mandala updated with regenerated AI report')
     } catch (error) {

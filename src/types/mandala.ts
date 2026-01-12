@@ -18,6 +18,7 @@ export interface AISummary {
   goal_analysis: string
   keywords: string[]
   insights: string
+  content_hash?: string // 리포트 생성 시점의 콘텐츠 해시
 }
 
 export interface Mandala {
