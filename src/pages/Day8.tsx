@@ -12,6 +12,7 @@ export function Day8() {
   const handleSave = async (data: { action_plans: Record<string, string[]> }) => {
     if (!mandala) return
 
+    // Merge new action plans with existing ones
     await updateMandala({
       action_plans: {
         ...mandala.action_plans,

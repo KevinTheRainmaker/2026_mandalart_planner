@@ -49,7 +49,7 @@ export function MandaratEdit() {
         action_plans: actionPlans,
       })
       alert('만다라트가 성공적으로 저장되었습니다!')
-      navigate('/step/14')
+      navigate('/step/13')
     } catch (error) {
       console.error('Failed to save mandala:', error)
       alert('저장에 실패했습니다. 다시 시도해주세요.')
@@ -59,7 +59,7 @@ export function MandaratEdit() {
   }
 
   const handleCancel = () => {
-    navigate('/step/14')
+    navigate('/step/13')
   }
 
   if (isLoading) {

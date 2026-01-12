@@ -57,7 +57,7 @@ export function Dashboard() {
             안녕하세요! 👋
           </h1>
           <p className="text-gray-600">
-            14단계 여정을 통해 2026년 목표를 설계해보세요
+            13단계 여정을 통해 2026년 목표를 설계해보세요
           </p>
         </div>
 
@@ -107,7 +107,7 @@ export function Dashboard() {
                 <div className="text-center">
                   <div className="text-3xl font-bold text-primary-600">
                     {Math.round(
-                      ((mandala.completed_days?.length || 0) / 14) * 100
+                      ((mandala.completed_days?.length || 0) / 13) * 100
                     )}
                     %
                   </div>

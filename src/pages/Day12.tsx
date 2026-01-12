@@ -12,6 +12,7 @@ export function Day12() {
   const handleSave = async (data: { action_plans: Record<string, string[]> }) => {
     if (!mandala) return
 
+    // Merge new action plans with existing ones
     await updateMandala({
       action_plans: {
         ...mandala.action_plans,
@@ -21,7 +22,7 @@ export function Day12() {
       current_day: 13,
     })
 
-    // Proceed to next step immediately
+    // Proceed to next step (AI Report)
     navigate('/step/13')
   }
 

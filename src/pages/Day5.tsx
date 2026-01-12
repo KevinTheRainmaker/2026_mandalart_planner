@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { Container, Header } from '@/components/layout'
-import { Day5SubGoals } from '@/components/day'
+import { DayActionPlan } from '@/components/day'
 import { useAuth, useMandala } from '@/hooks'
 import { Loading } from '@/components/common'
 
@@ -9,12 +9,15 @@ export function Day5() {
   const { user } = useAuth()
   const { mandala, isLoading, updateMandala } = useMandala(user?.id)
 
-  const handleSave = async (data: { sub_goals: string[] }) => {
+  const handleSave = async (data: { action_plans: Record<string, string[]> }) => {
     if (!mandala) return
 
-    // Update mandala with all 8 sub-goals and mark step as completed
+    // Merge new action plans with existing ones
     await updateMandala({
-      sub_goals: data.sub_goals,
+      action_plans: {
+        ...mandala.action_plans,
+        ...data.action_plans,
+      },
       completed_days: [...(mandala.completed_days || []), 5],
       current_day: 6,
     })
@@ -48,7 +51,7 @@ export function Day5() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       <Container className="py-8">
-        <Day5SubGoals mandala={mandala} onSave={handleSave} />
+        <DayActionPlan mandala={mandala} dayNumber={5} onSave={handleSave} />
       </Container>
     </div>
   )

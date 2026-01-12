@@ -1,29 +1,26 @@
 import { useNavigate } from 'react-router-dom'
 import { Container, Header } from '@/components/layout'
-import { DayActionPlan } from '@/components/day'
+import { Day3CenterGoal } from '@/components/day'
 import { useAuth, useMandala } from '@/hooks'
 import { Loading } from '@/components/common'
 
-export function Day9() {
+export function Day2() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { mandala, isLoading, updateMandala } = useMandala(user?.id)
 
-  const handleSave = async (data: { action_plans: Record<string, string[]> }) => {
+  const handleSave = async (data: { center_goal: string }) => {
     if (!mandala) return
 
-    // Merge new action plans with existing ones
+    // Update mandala with center goal and mark step as completed
     await updateMandala({
-      action_plans: {
-        ...mandala.action_plans,
-        ...data.action_plans,
-      },
-      completed_days: [...(mandala.completed_days || []), 9],
-      current_day: 10,
+      center_goal: data.center_goal,
+      completed_days: [...(mandala.completed_days || []), 2],
+      current_day: 3,
     })
 
     // Proceed to next step immediately
-    navigate('/step/10')
+    navigate('/step/3')
   }
 
   if (isLoading) {
@@ -51,7 +48,7 @@ export function Day9() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       <Container className="py-8">
-        <DayActionPlan mandala={mandala} dayNumber={9} onSave={handleSave} />
+        <Day3CenterGoal mandala={mandala} onSave={handleSave} />
       </Container>
     </div>
   )

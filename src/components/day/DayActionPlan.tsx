@@ -5,7 +5,7 @@ import type { Mandala } from '@/types'
 
 interface DayActionPlanProps {
   mandala: Mandala
-  dayNumber: 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13
+  dayNumber: 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
   onSave: (data: { action_plans: Record<string, string[]> }) => void
 }
 
@@ -14,8 +14,8 @@ export function DayActionPlan({
   dayNumber,
   onSave,
 }: DayActionPlanProps) {
-  // Calculate sub-goal index from day number (Day 6 = index 0, Day 13 = index 7)
-  const subGoalIndex = dayNumber - 6
+  // Calculate sub-goal index from day number (Day 5 = index 0, Day 12 = index 7)
+  const subGoalIndex = dayNumber - 5
   const subGoal = mandala.sub_goals?.[subGoalIndex] || ''
   const progressNumber = subGoalIndex + 1
 

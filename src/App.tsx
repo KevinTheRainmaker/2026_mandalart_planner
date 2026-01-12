@@ -6,6 +6,7 @@ import {
   Dashboard,
   AdminDashboard,
   Day1,
+  Day2,
   Day3,
   Day4,
   Day5,
@@ -49,12 +50,20 @@ function App() {
           }
         />
 
-        {/* Day Routes */}
+        {/* Day Routes - 13 Steps + Day 14 for future */}
         <Route
           path="/step/1"
           element={
             <ProtectedRoute>
               <Day1 />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/step/2"
+          element={
+            <ProtectedRoute>
+              <Day2 />
             </ProtectedRoute>
           }
         />
@@ -187,3 +196,4 @@ function App() {
 }
 
 export default App
+

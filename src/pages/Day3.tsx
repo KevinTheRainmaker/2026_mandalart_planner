@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { Container, Header } from '@/components/layout'
-import { Day3CenterGoal } from '@/components/day'
+import { Day4SubGoals } from '@/components/day'
 import { useAuth, useMandala } from '@/hooks'
 import { Loading } from '@/components/common'
 
@@ -9,12 +9,12 @@ export function Day3() {
   const { user } = useAuth()
   const { mandala, isLoading, updateMandala } = useMandala(user?.id)
 
-  const handleSave = async (data: { center_goal: string }) => {
+  const handleSave = async (data: { sub_goals: string[] }) => {
     if (!mandala) return
 
-    // Update mandala with center goal and mark step as completed
+    // Update mandala with first 4 sub-goals and mark step as completed
     await updateMandala({
-      center_goal: data.center_goal,
+      sub_goals: data.sub_goals,
       completed_days: [...(mandala.completed_days || []), 3],
       current_day: 4,
     })
@@ -48,7 +48,7 @@ export function Day3() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       <Container className="py-8">
-        <Day3CenterGoal mandala={mandala} onSave={handleSave} />
+        <Day4SubGoals mandala={mandala} onSave={handleSave} />
       </Container>
     </div>
   )
