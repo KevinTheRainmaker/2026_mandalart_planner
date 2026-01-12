@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { HandWaving, Target } from '@phosphor-icons/react'
 import { useAuth, useMandala } from '@/hooks'
 import { Header, Container } from '@/components/layout'
 import { DayTimeline } from '@/components/timeline'
@@ -53,8 +54,8 @@ export function Dashboard() {
       <Container className="py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            안녕하세요! 👋
+          <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+            안녕하세요! <HandWaving size={32} weight="duotone" className="text-amber-500" />
           </h1>
           <p className="text-gray-600">
             13단계 여정을 통해 2026년 목표를 설계해보세요
@@ -65,7 +66,9 @@ export function Dashboard() {
         {!mandala && !isLoading && (
           <div className="bg-white rounded-lg shadow-md p-8 text-center">
             <div className="mb-6">
-              <div className="text-6xl mb-4">🎯</div>
+              <div className="flex justify-center mb-4">
+                <Target size={64} weight="duotone" className="text-primary-500" />
+              </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
                 새로운 여정을 시작하세요
               </h2>

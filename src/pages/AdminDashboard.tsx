@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Download } from 'lucide-react'
+import { DownloadSimple } from '@phosphor-icons/react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks'
 import { Container, Header } from '@/components/layout'
@@ -215,7 +215,7 @@ export function AdminDashboard() {
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
               >
-                <Download className="w-4 h-4" />
+              <DownloadSimple size={16} />
                 CSV 다운로드 ({selectedUsers.length})
               </button>
               <button

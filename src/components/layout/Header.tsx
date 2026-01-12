@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Menu, X } from 'lucide-react'
+import { List, X, Wrench } from '@phosphor-icons/react'
 import { useAuth } from '@/hooks'
+import { Logo } from '@/components/common'
 
 export function Header() {
   const navigate = useNavigate()
@@ -40,9 +41,7 @@ export function Header() {
     <header className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-primary-600">
-            2026 만다라트 목표 설계
-          </h1>
+          <Logo size="md" />
 
           {/* Hamburger Menu */}
           <div className="relative" ref={menuRef}>
@@ -52,9 +51,9 @@ export function Header() {
               aria-label="메뉴 열기"
             >
               {isMenuOpen ? (
-                <X className="w-6 h-6 text-gray-700" />
+                <X size={24} className="text-gray-700" />
               ) : (
-                <Menu className="w-6 h-6 text-gray-700" />
+                <List size={24} className="text-gray-700" />
               )}
             </button>
 
@@ -86,9 +85,10 @@ export function Header() {
                         setIsMenuOpen(false)
                         navigate('/admin')
                       }}
-                      className="w-full px-4 py-2 text-left text-purple-600 hover:bg-purple-50 transition-colors"
+                      className="w-full px-4 py-2 text-left text-purple-600 hover:bg-purple-50 transition-colors flex items-center gap-2"
                     >
-                      🔧 관리자 대시보드
+                      <Wrench size={16} />
+                      관리자 대시보드
                     </button>
                   )}
                   <button

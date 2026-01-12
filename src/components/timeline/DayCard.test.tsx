@@ -13,7 +13,7 @@ describe('DayCard', () => {
       />
     )
 
-    expect(screen.getByText('Day 1')).toBeInTheDocument()
+    expect(screen.getByText('단계 1')).toBeInTheDocument()
     expect(screen.getByText('회고 시작')).toBeInTheDocument()
   })
 
@@ -27,7 +27,7 @@ describe('DayCard', () => {
       />
     )
 
-    const card = screen.getByText('Day 1').closest('div[class*="border-2"]')
+    const card = screen.getByText('단계 1').closest('div[class*="border-2"]')
     expect(card).toHaveClass('border-primary-600')
   })
 
@@ -41,7 +41,7 @@ describe('DayCard', () => {
       />
     )
 
-    const card = screen.getByText('Day 3').closest('div[class*="border-2"]')
+    const card = screen.getByText('단계 3').closest('div[class*="border-2"]')
     expect(card).toHaveClass('bg-primary-50')
   })
 
@@ -55,7 +55,7 @@ describe('DayCard', () => {
       />
     )
 
-    const card = screen.getByText('Day 10').closest('div[class*="border-2"]')
+    const card = screen.getByText('단계 10').closest('div[class*="border-2"]')
     expect(card).toHaveClass('opacity-50')
   })
 
@@ -71,7 +71,7 @@ describe('DayCard', () => {
       />
     )
 
-    const card = screen.getByText('Day 1').closest('div[class*="border-2"]')!
+    const card = screen.getByText('단계 1').closest('div[class*="border-2"]')!
     fireEvent.click(card)
     expect(handleClick).toHaveBeenCalledWith(1)
   })
@@ -83,7 +83,7 @@ describe('DayCard', () => {
       <DayCard day={10} title="액션플랜" status="locked" onClick={handleClick} />
     )
 
-    const card = screen.getByText('Day 10').closest('div[class*="border-2"]')!
+    const card = screen.getByText('단계 10').closest('div[class*="border-2"]')!
     fireEvent.click(card)
     expect(handleClick).not.toHaveBeenCalled()
   })

@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { PencilSimple, ChartBar } from '@phosphor-icons/react'
 import { Container, Header } from '@/components/layout'
 import { MandalaGrid } from '@/components/mandala'
 import { Button, Loading } from '@/components/common'
@@ -173,8 +174,8 @@ export function Day13() {
 
               {/* Edit Mandala Button */}
               <div className="flex justify-center">
-                <Button onClick={handleEditMandala} variant="primary" size="lg">
-                  ✏️ 만다라트 수정하러 가기
+                <Button onClick={handleEditMandala} variant="primary" size="lg" className="flex items-center gap-2">
+                  <PencilSimple size={20} weight="bold" /> 만다라트 수정하러 가기
                 </Button>
               </div>
             </div>
@@ -193,8 +194,8 @@ export function Day13() {
                 <MandalaGrid mandala={mandala} onUpdate={updateMandala} />
               </div>
               <div className="flex justify-center mt-6">
-                <Button onClick={handleDownloadMandala} variant="secondary" size="lg">
-                  📊 만다라트 계획서 PDF 다운로드
+                <Button onClick={handleDownloadMandala} variant="secondary" size="lg" className="flex items-center gap-2">
+                  <ChartBar size={20} weight="bold" /> 만다라트 계획서 PDF 다운로드
                 </Button>
               </div>
             </div>

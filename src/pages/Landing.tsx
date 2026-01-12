@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { MagnifyingGlass, Target, ChartBar } from '@phosphor-icons/react'
 import { Button } from '@/components/common'
 import { EmailAuthModal } from '@/components/auth'
 import { Container } from '@/components/layout'
@@ -60,7 +61,9 @@ export function Landing() {
           {/* Feature Cards */}
           <div className="grid md:grid-cols-3 gap-6 mt-12">
             <div className="bg-white p-6 rounded-lg shadow-md">
-              <div className="text-4xl mb-3">🔍</div>
+              <div className="flex justify-center mb-3">
+                <MagnifyingGlass size={48} weight="duotone" className="text-primary-500" />
+              </div>
               <h3 className="font-semibold text-lg mb-2">2025 돌아보기</h3>
               <p className="text-gray-600 text-sm">
                 2025년 회고를 통해 지난 한 해를 돌아봅니다
@@ -68,7 +71,9 @@ export function Landing() {
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow-md">
-              <div className="text-4xl mb-3">🎯</div>
+              <div className="flex justify-center mb-3">
+                <Target size={48} weight="duotone" className="text-primary-500" />
+              </div>
               <h3 className="font-semibold text-lg mb-2">2026 계획하기</h3>
               <p className="text-gray-600 text-sm">
                 목표와 실행 계획을 구체화합니다
@@ -76,7 +81,9 @@ export function Landing() {
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow-md">
-              <div className="text-4xl mb-3">📊</div>
+              <div className="flex justify-center mb-3">
+                <ChartBar size={48} weight="duotone" className="text-primary-500" />
+              </div>
               <h3 className="font-semibold text-lg mb-2">만다라트 완성하기</h3>
               <p className="text-gray-600 text-sm">
                 만다라트 계획표를 완성하고 출력할 수 있습니다
