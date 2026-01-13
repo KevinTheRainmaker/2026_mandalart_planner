@@ -147,6 +147,17 @@ export const MandalaGrid = forwardRef<MandalaGridRef, MandalaGridProps>(function
     const colorClass = sectionColors[sectionIndex]
 
     if (isCenter) {
+      // 가운데 셀 인덱스(0-8)를 sub_goals 인덱스(0-7)로 매핑
+      // 셀 레이아웃: 0 1 2
+      //            3 4 5  (4는 center_goal)
+      //            6 7 8
+      // sub_goals 순서: 0 1 2 3 _ 4 5 6 7
+      const getCenterCellSubGoal = (cellIndex: number): string => {
+        if (cellIndex === 4) return '' // 가운데 셀은 center_goal
+        const subGoalIndex = cellIndex < 4 ? cellIndex : cellIndex - 1
+        return sub_goals[subGoalIndex] || ''
+      }
+
       return (
         <div
           key={sectionIndex}
@@ -160,10 +171,10 @@ export const MandalaGrid = forwardRef<MandalaGridRef, MandalaGridProps>(function
                 key={cellIndex}
                 data-testid={isCenterCell ? 'center-cell' : 'mandala-cell'}
                 className={`border border-gray-300 p-1 flex items-center justify-center text-center min-h-[3rem] break-words ${
-                  isCenterCell ? 'bg-primary-500 text-white font-bold text-sm' : 'bg-white text-xs'
+                  isCenterCell ? 'bg-primary-500 text-white font-bold text-sm' : 'bg-gray-700 text-white font-semibold text-xs'
                 }`}
               >
-                {isCenterCell && center_goal}
+                {isCenterCell ? center_goal : getCenterCellSubGoal(cellIndex)}
               </div>
             )
           })}
