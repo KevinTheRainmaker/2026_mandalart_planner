@@ -35,7 +35,7 @@ export function Day3CenterGoal({ mandala, onSave }: Day3CenterGoalProps) {
       setMessages([
         {
           type: 'question',
-          content: '안녕하세요! 이제 2026년 핵심 목표를 설정할 차례입니다. 🎯',
+          content: "안녕하세요! 이제 2026년 핵심 목표를 설정할 차례입니다. 핵심 목표는 한 해 동안 가장 중요한 '결과(outcome)'를 담아, 구체적으로 달성 여부를 판단할 수 있도록 한 문장으로 설정하는 것이 가장 좋습니다.",
         },
       ])
 
