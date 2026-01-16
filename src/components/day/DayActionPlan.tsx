@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Button, Input } from '@/components/common'
+import { Button, Input, RecommendationCard } from '@/components/common'
 import { ACTION_PLAN_MAX_LENGTH } from '@/constants'
+import { generateActionPlanRecommendations } from '@/services'
 import type { Mandala } from '@/types'
 
 interface DayActionPlanProps {
@@ -42,6 +43,24 @@ export function DayActionPlan({
     })
   }
 
+  const handleRecommendationSelect = (text: string) => {
+    // Find first empty slot and fill it
+    const emptyIndex = actionPlans.findIndex((plan) => !plan.trim())
+    if (emptyIndex !== -1) {
+      const newActionPlans = [...actionPlans]
+      newActionPlans[emptyIndex] = text
+      setActionPlans(newActionPlans)
+    }
+  }
+
+  const handleGenerateRecommendations = async () => {
+    return generateActionPlanRecommendations(
+      mandala.center_goal || '',
+      subGoal,
+      actionPlans.filter(Boolean)
+    )
+  }
+
   const isSaveEnabled = actionPlans.every((plan) => plan.trim().length > 0)
 
   // Calculate progress percentage
@@ -79,6 +98,13 @@ export function DayActionPlan({
           실제로 실행 가능한 구체적인 액션플랜을 작성하세요.
         </p>
       </div>
+
+      {/* AI Recommendation Card */}
+      <RecommendationCard
+        title="AI가 액션플랜을 추천해드려요"
+        onGenerate={handleGenerateRecommendations}
+        onSelect={handleRecommendationSelect}
+      />
 
       {/* Action Plans Input */}
       <div className="space-y-6">
@@ -151,3 +177,4 @@ export function DayActionPlan({
     </div>
   )
 }
+

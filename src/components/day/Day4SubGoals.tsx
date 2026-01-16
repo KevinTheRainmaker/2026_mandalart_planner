@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Button, Input } from '@/components/common'
+import { Button, Input, RecommendationCard } from '@/components/common'
 import { SUB_GOAL_MAX_LENGTH } from '@/constants'
+import { generateSubGoalRecommendations } from '@/services'
 import type { Mandala } from '@/types'
 
 interface Day4SubGoalsProps {
@@ -29,6 +30,23 @@ export function Day4SubGoals({ mandala, onSave }: Day4SubGoalsProps) {
     onSave({
       sub_goals: trimmedGoals,
     })
+  }
+
+  const handleRecommendationSelect = (text: string) => {
+    // Find first empty slot and fill it
+    const emptyIndex = subGoals.findIndex((goal) => !goal.trim())
+    if (emptyIndex !== -1) {
+      const newSubGoals = [...subGoals]
+      newSubGoals[emptyIndex] = text
+      setSubGoals(newSubGoals)
+    }
+  }
+
+  const handleGenerateRecommendations = async () => {
+    return generateSubGoalRecommendations(
+      mandala.center_goal || '',
+      subGoals.filter(Boolean)
+    )
   }
 
   const isSaveEnabled = subGoals.every((goal) => goal.trim().length > 0)
@@ -67,6 +85,13 @@ export function Day4SubGoals({ mandala, onSave }: Day4SubGoalsProps) {
           중심 목표를 달성하기 위한 4가지 핵심 영역을 작성해보세요.
         </p>
       </div>
+
+      {/* AI Recommendation Card */}
+      <RecommendationCard
+        title="AI가 하위 목표를 추천해드려요"
+        onGenerate={handleGenerateRecommendations}
+        onSelect={handleRecommendationSelect}
+      />
 
       {/* Sub-Goals Input */}
       <div className="space-y-6">
@@ -120,3 +145,4 @@ export function Day4SubGoals({ mandala, onSave }: Day4SubGoalsProps) {
     </div>
   )
 }
+

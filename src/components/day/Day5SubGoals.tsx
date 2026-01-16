@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Button, Input } from '@/components/common'
+import { Button, Input, RecommendationCard } from '@/components/common'
 import { SUB_GOAL_MAX_LENGTH } from '@/constants'
+import { generateSubGoalRecommendations } from '@/services'
 import type { Mandala } from '@/types'
 
 interface Day5SubGoalsProps {
@@ -35,6 +36,28 @@ export function Day5SubGoals({ mandala, onSave }: Day5SubGoalsProps) {
     onSave({
       sub_goals: allSubGoals,
     })
+  }
+
+  const handleRecommendationSelect = (text: string) => {
+    // Find first empty slot and fill it
+    const emptyIndex = subGoals.findIndex((goal) => !goal.trim())
+    if (emptyIndex !== -1) {
+      const newSubGoals = [...subGoals]
+      newSubGoals[emptyIndex] = text
+      setSubGoals(newSubGoals)
+    }
+  }
+
+  const handleGenerateRecommendations = async () => {
+    // Include all existing sub-goals (first 4 + current 4) for context
+    const allExisting = [
+      ...(mandala.sub_goals?.slice(0, 4) || []),
+      ...subGoals.filter(Boolean),
+    ]
+    return generateSubGoalRecommendations(
+      mandala.center_goal || '',
+      allExisting
+    )
   }
 
   const isSaveEnabled = subGoals.every((goal) => goal.trim().length > 0)
@@ -94,6 +117,13 @@ export function Day5SubGoals({ mandala, onSave }: Day5SubGoalsProps) {
         </p>
       </div>
 
+      {/* AI Recommendation Card */}
+      <RecommendationCard
+        title="AI가 하위 목표를 추천해드려요"
+        onGenerate={handleGenerateRecommendations}
+        onSelect={handleRecommendationSelect}
+      />
+
       {/* Sub-Goals Input */}
       <div className="space-y-6">
         {[0, 1, 2, 3].map((index) => (
@@ -149,3 +179,4 @@ export function Day5SubGoals({ mandala, onSave }: Day5SubGoalsProps) {
     </div>
   )
 }
+

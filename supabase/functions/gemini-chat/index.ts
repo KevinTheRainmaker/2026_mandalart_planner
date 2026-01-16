@@ -7,7 +7,7 @@ const corsHeaders = {
 }
 
 interface ChatRequest {
-  action: 'generateQuestion' | 'generateGoalSuggestion' | 'generateReport'
+  action: 'generateQuestion' | 'generateGoalSuggestion' | 'generateReport' | 'generateRecommendations'
   payload: Record<string, unknown>
 }
 
@@ -37,6 +37,9 @@ serve(async (req) => {
         break
       case 'generateReport':
         result = await handleGenerateReport(genAI, payload)
+        break
+      case 'generateRecommendations':
+        result = await handleGenerateRecommendations(genAI, payload)
         break
       default:
         throw new Error(`Unknown action: ${action}`)
@@ -221,4 +224,119 @@ ${Object.entries(mandala.action_plans as Record<string, string[]>)
   }
 
   return JSON.parse(jsonMatch[0])
+}
+
+async function handleGenerateRecommendations(
+  genAI: GoogleGenerativeAI,
+  payload: Record<string, unknown>
+): Promise<{
+  recommendations: { text: string; reason: string }[]
+}> {
+  const { type, centerGoal, subGoal, existingItems } = payload as {
+    type: 'subGoal' | 'actionPlan'
+    centerGoal: string
+    subGoal?: string
+    existingItems?: string[]
+  }
+
+  const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' })
+
+  const existingItemsText = existingItems?.length 
+    ? `\n\n## 이미 작성된 항목 (중복 방지):\n${existingItems.map((item, i) => `${i + 1}. ${item}`).join('\n')}`
+    : ''
+
+  let prompt: string
+
+  if (type === 'subGoal') {
+    prompt = `당신은 SMART 프레임워크를 기반으로 만다라트 차트의 하위 목표를 추천하는 전문 코치입니다.
+
+## 핵심 목표
+${centerGoal}
+${existingItemsText}
+
+## 요청
+위 핵심 목표를 달성하기 위한 하위 목표 3개를 추천해주세요.
+
+### SMART 기준 적용
+각 하위 목표는 다음 SMART 기준을 고려하여 작성해야 합니다:
+- **S** (Specific): 명확하고 구체적인 영역
+- **M** (Measurable): 진척도를 측정할 수 있는 영역
+- **A** (Achievable): 현실적으로 달성 가능한 영역
+- **R** (Relevant): 핵심 목표와 직접적으로 연관된 영역
+- **T** (Time-bound): 기간 내에 집중할 수 있는 영역
+
+### 응답 형식 (JSON)
+{
+  "recommendations": [
+    {
+      "text": "하위 목표 1 (최대 50자)",
+      "reason": "SMART 기준 중 어떤 요소를 충족하는지 1-2문장으로 설명"
+    },
+    {
+      "text": "하위 목표 2 (최대 50자)",
+      "reason": "SMART 기준 중 어떤 요소를 충족하는지 1-2문장으로 설명"
+    },
+    {
+      "text": "하위 목표 3 (최대 50자)",
+      "reason": "SMART 기준 중 어떤 요소를 충족하는지 1-2문장으로 설명"
+    }
+  ]
+}`
+  } else {
+    prompt = `당신은 SMART 프레임워크를 기반으로 만다라트 차트의 액션플랜을 추천하는 전문 코치입니다.
+
+## 핵심 목표
+${centerGoal}
+
+## 해당 하위 목표
+${subGoal}
+${existingItemsText}
+
+## 요청
+위 하위 목표를 달성하기 위한 구체적인 액션플랜 3개를 추천해주세요.
+
+### SMART 기준 적용
+각 액션플랜은 다음 SMART 기준을 고려하여 작성해야 합니다:
+- **S** (Specific): 무엇을, 어떻게 할지 명확하게 정의
+- **M** (Measurable): 완료 여부를 측정할 수 있게 작성
+- **A** (Achievable): 일상에서 실행 가능한 수준으로 설정
+- **R** (Relevant): 하위 목표와 직접적으로 연결되는 행동
+- **T** (Time-bound): 언제, 얼마나 자주 할지 포함
+
+### 응답 형식 (JSON)
+{
+  "recommendations": [
+    {
+      "text": "액션플랜 1 (최대 50자, 예: 매일 아침 7시에 30분 조깅하기)",
+      "reason": "SMART 기준 중 어떤 요소를 충족하는지 1-2문장으로 설명"
+    },
+    {
+      "text": "액션플랜 2 (최대 50자)",
+      "reason": "SMART 기준 중 어떤 요소를 충족하는지 1-2문장으로 설명"
+    },
+    {
+      "text": "액션플랜 3 (최대 50자)",
+      "reason": "SMART 기준 중 어떤 요소를 충족하는지 1-2문장으로 설명"
+    }
+  ]
+}`
+  }
+
+  try {
+    const result = await model.generateContent(prompt)
+    const text = result.response.text()
+
+    const jsonMatch = text.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) {
+      return { recommendations: [] }
+    }
+
+    const parsed = JSON.parse(jsonMatch[0])
+    return {
+      recommendations: parsed.recommendations || [],
+    }
+  } catch (error) {
+    console.error('Recommendation generation failed:', error)
+    return { recommendations: [] }
+  }
 }
