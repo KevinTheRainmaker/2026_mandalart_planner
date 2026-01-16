@@ -259,13 +259,13 @@ async function handleGenerateRecommendations(
   const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' })
 
   const existingItemsText = existingItems?.length 
-    ? `\n\n## 이미 작성된 항목 (중복 방지):\n${existingItems.map((item, i) => `${i + 1}. ${item}`).join('\n')}`
+    ? `\n\n${existingItems.map((item, i) => `${i + 1}. ${item}`).join('\n')}`
     : ''
 
   let prompt: string
 
   if (type === 'subGoal') {
-    pprompt = `당신은 SMART 프레임워크를 활용해
+    prompt = `당신은 SMART 프레임워크를 활용해
 하나의 핵심 목표를 ‘관리 가능한 전략적 하위 영역’으로 분해하는 목표 설계 전문가입니다.
 
 당신의 역할은 실행 계획이나 행동을 제안하는 것이 아니라,
@@ -273,6 +273,9 @@ async function handleGenerateRecommendations(
 
 ## 핵심 목표
 ${centerGoal}
+
+## 이전 하위 목표
+다음은 이전에 작성한 하위 목표입니다. 아래와 유사한 스타일로, 겹치지 않게 추천해주세요.
 ${existingItemsText}
 
 ## 목표 해석 가이드 (중요)
@@ -325,6 +328,9 @@ ${centerGoal}
 
 ## 해당 하위 목표
 ${subGoal}
+
+## 이전 액션 플랜
+다음은 이전에 작성한 액션 플랜입니다. 아래와 유사한 스타일로, 겹치지 않게 추천해주세요.
 ${existingItemsText}
 
 ## 요청
