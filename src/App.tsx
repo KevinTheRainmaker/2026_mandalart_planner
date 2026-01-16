@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { ProtectedRoute } from './components/auth'
+import { FloatingCoffeeButton } from './components/common/FloatingCoffeeButton'
 import {
   Landing,
   AuthCallback,
@@ -25,6 +26,7 @@ import {
 function App() {
   return (
     <BrowserRouter>
+      <FloatingCoffeeButton />
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Landing />} />

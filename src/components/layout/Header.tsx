@@ -44,20 +44,6 @@ export function Header() {
           <Logo size="md" />
 
           <div className="flex items-center gap-4">
-            {/* Buy me a Coffee */}
-            <a
-              href="https://www.buymeacoffee.com/kevinrain"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden sm:block"
-            >
-              <img
-                src="https://img.buymeacoffee.com/button-api/?text=개발자 커피 사주기&emoji=&slug=kevinrain&button_colour=5F7FFF&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00"
-                alt="Buy me a coffee"
-                className="h-8"
-              />
-            </a>
-
             {/* Hamburger Menu */}
             <div className="relative" ref={menuRef}>
               <button
