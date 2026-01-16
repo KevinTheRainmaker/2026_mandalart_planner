@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Sparkle, ArrowClockwise, Check } from '@phosphor-icons/react'
+import { Sparkle, ArrowClockwise, Check, Copy } from '@phosphor-icons/react'
 import { Button } from './Button'
 import { Loading } from './Loading'
 import type { Recommendation } from '@/services'
@@ -19,10 +19,12 @@ export function RecommendationCard({
   const [isLoading, setIsLoading] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [hasGenerated, setHasGenerated] = useState(false)
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
 
   const handleGenerate = async () => {
     setIsLoading(true)
     setSelectedIndex(null)
+    setCopiedIndex(null)
     try {
       const results = await onGenerate()
       setRecommendations(results)
@@ -40,9 +42,20 @@ export function RecommendationCard({
     onSelect(recommendation.text)
   }
 
+  const handleCopy = async (text: string, index: number, e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent triggering the parent button click
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopiedIndex(index)
+      setTimeout(() => setCopiedIndex(null), 2000)
+    } catch (error) {
+      console.error('Failed to copy:', error)
+    }
+  }
+
   if (!hasGenerated) {
     return (
-      <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4">
+      <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkle size={20} weight="fill" className="text-purple-600" />
@@ -66,6 +79,11 @@ export function RecommendationCard({
             )}
           </Button>
         </div>
+        {isLoading && (
+          <div className="py-4 text-center">
+            <Loading size="md" message="SMART 프레임워크 기준으로 추천을 생성하고 있어요..." />
+          </div>
+        )}
       </div>
     )
   }
@@ -100,10 +118,10 @@ export function RecommendationCard({
       ) : recommendations.length > 0 ? (
         <div className="space-y-2">
           {recommendations.map((rec, index) => (
-            <button
+            <div
               key={index}
               onClick={() => handleSelect(rec, index)}
-              className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
+              className={`w-full text-left p-3 rounded-lg border-2 transition-all cursor-pointer ${
                 selectedIndex === index
                   ? 'border-purple-500 bg-purple-100'
                   : 'border-gray-200 bg-white hover:border-purple-300 hover:bg-purple-50'
@@ -129,8 +147,23 @@ export function RecommendationCard({
                   </p>
                   <p className="text-sm text-gray-600 mt-1">{rec.reason}</p>
                 </div>
+                <button
+                  onClick={(e) => handleCopy(rec.text, index, e)}
+                  className={`flex-shrink-0 p-1.5 rounded-md transition-all ${
+                    copiedIndex === index
+                      ? 'bg-green-100 text-green-600'
+                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700'
+                  }`}
+                  title="복사하기"
+                >
+                  {copiedIndex === index ? (
+                    <Check size={14} weight="bold" />
+                  ) : (
+                    <Copy size={14} weight="bold" />
+                  )}
+                </button>
               </div>
-            </button>
+            </div>
           ))}
         </div>
       ) : (
@@ -141,3 +174,4 @@ export function RecommendationCard({
     </div>
   )
 }
+
