@@ -58,7 +58,7 @@ export function Day3CenterGoal({ mandala, onSave }: Day3CenterGoalProps) {
               ...withoutLoading,
               {
                 type: 'question',
-                content: `회고 내용을 분석해봤어요.\n\n${suggestion.reasoning}`,
+                content: `당신의 회고 내용을 분석해봤어요.\n\n${suggestion.reasoning}`,
               },
               {
                 type: 'suggestion',
