@@ -197,7 +197,7 @@ async function handleGenerateReport(
 }> {
   const { mandala } = payload as { mandala: Record<string, unknown> }
 
-  const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-3-pro-preview' })
 
   const prompt = `당신은 만다라트(Mandala Chart) 기법에 정통한 전문 목표 코치입니다.
 사용자의 만다라트 계획을 분석하여, 이미 잘 설계된 부분은 명확히 짚고, 필요한 경우에만 과하지 않은 개선 방향을 제안해주세요.
