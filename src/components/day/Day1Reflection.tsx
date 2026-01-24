@@ -270,6 +270,20 @@ export function Day1Reflection({ mandala, onSave }: Day1ReflectionProps) {
 
   return (
     <div className="flex flex-col h-[calc(100vh-200px)] max-w-4xl mx-auto">
+      {/* Progress Indicator */}
+      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 mx-4 mt-2 mb-4">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-gray-700">전체 진행률:</span>
+          <span className="text-lg font-bold text-blue-600">1 / 13 단계</span>
+        </div>
+        <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+          <div
+            className="bg-blue-600 h-2 rounded-full transition-all"
+            style={{ width: `${Math.round((1 / 13) * 100)}%` }}
+          />
+        </div>
+      </div>
+
       {/* Chat messages container */}
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
         {messages.map((message, index) => (

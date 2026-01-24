@@ -70,6 +70,20 @@ export function Day4SubGoals({ mandala, onSave }: Day4SubGoalsProps) {
         </p>
       </div>
 
+      {/* Progress Indicator */}
+      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-gray-700">전체 진행률:</span>
+          <span className="text-lg font-bold text-blue-600">3 / 13 단계</span>
+        </div>
+        <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+          <div
+            className="bg-blue-600 h-2 rounded-full transition-all"
+            style={{ width: `${Math.round((3 / 13) * 100)}%` }}
+          />
+        </div>
+      </div>
+
       {/* Center Goal Display */}
       <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
         <div className="text-center">
@@ -120,19 +134,6 @@ export function Day4SubGoals({ mandala, onSave }: Day4SubGoalsProps) {
         ))}
       </div>
 
-      {/* Progress Indicator */}
-      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-700">전체 진행률:</span>
-          <span className="text-lg font-bold text-blue-600">3 / 13 단계</span>
-        </div>
-        <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
-          <div
-            className="bg-blue-600 h-2 rounded-full transition-all"
-            style={{ width: `${Math.round((3 / 13) * 100)}%` }}
-          />
-        </div>
-      </div>
 
       {/* Tip */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
