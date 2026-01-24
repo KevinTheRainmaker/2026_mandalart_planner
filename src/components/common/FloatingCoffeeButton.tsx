@@ -1,8 +1,18 @@
+import { useLocation } from 'react-router-dom'
+
 /**
  * Floating Buy Me a Coffee button
  * Displays in the bottom-right corner of the screen
+ * Hidden on the landing page
  */
 export function FloatingCoffeeButton() {
+  const location = useLocation()
+  
+  // Hide on landing page
+  if (location.pathname === '/') {
+    return null
+  }
+
   return (
     <a
       href="https://www.buymeacoffee.com/kevinrain"
