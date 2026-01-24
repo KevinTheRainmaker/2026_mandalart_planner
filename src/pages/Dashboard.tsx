@@ -103,14 +103,14 @@ export function Dashboard() {
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-primary-600">
-                    {mandala.completed_days?.length || 0}
+                    {Math.min(13, mandala.completed_days?.length || 0)}
                   </div>
                   <div className="text-sm text-gray-600">완료한 단계</div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-primary-600">
-                    {Math.round(
-                      ((mandala.completed_days?.length || 0) / 13) * 100
+                    {Math.min(100, Math.round(
+                      ((mandala.completed_days?.length || 0) / 13) * 100)
                     )}
                     %
                   </div>

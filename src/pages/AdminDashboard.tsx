@@ -191,7 +191,7 @@ export function AdminDashboard() {
   }
 
   const getProgressPercent = (currentDay: number) => {
-    return Math.round((currentDay / 14) * 100)
+    return Math.min(100, Math.round((currentDay / 14) * 100))
   }
 
   return (
