@@ -123,13 +123,13 @@ export function Day4SubGoals({ mandala, onSave }: Day4SubGoalsProps) {
       {/* Progress Indicator */}
       <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-700">진행률:</span>
-          <span className="text-lg font-bold text-blue-600">4 / 8</span>
+          <span className="text-sm font-medium text-gray-700">전체 진행률:</span>
+          <span className="text-lg font-bold text-blue-600">3 / 13 단계</span>
         </div>
         <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
           <div
             className="bg-blue-600 h-2 rounded-full transition-all"
-            style={{ width: '50%' }}
+            style={{ width: `${Math.round((3 / 13) * 100)}%` }}
           />
         </div>
       </div>

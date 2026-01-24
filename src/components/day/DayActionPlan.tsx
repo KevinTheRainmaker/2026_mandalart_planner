@@ -63,8 +63,6 @@ export function DayActionPlan({
 
   const isSaveEnabled = actionPlans.every((plan) => plan.trim().length > 0)
 
-  // Calculate progress percentage
-  const progressPercentage = (progressNumber / 8) * 100
 
   return (
     <div className="space-y-8">
@@ -127,36 +125,19 @@ export function DayActionPlan({
       </div>
 
       {/* Progress Indicator */}
-      <div
-        className={`rounded-lg p-4 border ${
-          progressNumber === 8
-            ? 'bg-green-50 border-green-200'
-            : 'bg-gray-50 border-gray-200'
-        }`}
-      >
+      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-700">진행률:</span>
-          <span
-            className={`text-lg font-bold ${
-              progressNumber === 8 ? 'text-green-600' : 'text-blue-600'
-            }`}
-          >
-            {progressNumber} / 8
+          <span className="text-sm font-medium text-gray-700">전체 진행률:</span>
+          <span className="text-lg font-bold text-blue-600">
+            {dayNumber} / 13 단계
           </span>
         </div>
         <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
           <div
-            className={`h-2 rounded-full transition-all ${
-              progressNumber === 8 ? 'bg-green-600' : 'bg-blue-600'
-            }`}
-            style={{ width: `${progressPercentage}%` }}
+            className="bg-blue-600 h-2 rounded-full transition-all"
+            style={{ width: `${Math.round((dayNumber / 13) * 100)}%` }}
           />
         </div>
-        {progressNumber === 8 && (
-          <p className="text-xs text-green-700 mt-2">
-            모든 하위 목표의 액션플랜 작성이 완료됩니다!
-          </p>
-        )}
       </div>
 
       {/* Tip */}

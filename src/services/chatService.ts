@@ -69,6 +69,7 @@ export async function generateNextQuestion(
       baseQuestion,
       previousAnswers: context.previousAnswers,
       isFirstQuestion: context.previousAnswers.length === 0,
+      totalQuestions: theme.questions.length,
     })
 
     return {

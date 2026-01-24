@@ -147,20 +147,17 @@ export function Day5SubGoals({ mandala, onSave }: Day5SubGoalsProps) {
       </div>
 
       {/* Progress Indicator */}
-      <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-700">진행률:</span>
-          <span className="text-lg font-bold text-green-600">8 / 8</span>
+          <span className="text-sm font-medium text-gray-700">전체 진행률:</span>
+          <span className="text-lg font-bold text-blue-600">4 / 13 단계</span>
         </div>
         <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
           <div
-            className="bg-green-600 h-2 rounded-full transition-all"
-            style={{ width: '100%' }}
+            className="bg-blue-600 h-2 rounded-full transition-all"
+            style={{ width: `${Math.round((4 / 13) * 100)}%` }}
           />
         </div>
-        <p className="text-xs text-green-700 mt-2">
-          모든 하위 목표를 완성하면 액션플랜 단계로 넘어갑니다!
-        </p>
       </div>
 
       {/* Tip */}

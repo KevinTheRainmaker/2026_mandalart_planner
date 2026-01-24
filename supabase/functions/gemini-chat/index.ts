@@ -61,12 +61,13 @@ async function handleGenerateQuestion(
   genAI: GoogleGenerativeAI,
   payload: Record<string, unknown>
 ): Promise<{ question: string; summary?: string }> {
-  const { theme, themeTitle, baseQuestion, previousAnswers, isFirstQuestion } = payload as {
+  const { theme, themeTitle, baseQuestion, previousAnswers, isFirstQuestion, totalQuestions } = payload as {
     theme: string
     themeTitle: string
     baseQuestion: string
     previousAnswers: { question: string; answer: string }[]
     isFirstQuestion: boolean
+    totalQuestions: number
   }
 
   const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' })
@@ -74,6 +75,10 @@ async function handleGenerateQuestion(
   const conversationHistory = previousAnswers
     .map((qa, i) => `질문 ${i + 1}: ${qa.question}\n답변: ${qa.answer}`)
     .join('\n\n')
+
+  const firstQuestionInstruction = isFirstQuestion 
+    ? `첫 질문이니 친근하게 시작하면서, 총 ${totalQuestions}개의 질문을 드릴 예정이라고 자연스럽게 안내해주세요.`
+    : '이전 답변 내용을 자연스럽게 연결하거나 언급해주세요.'
 
   const prompt = `당신은 친근하고 공감적인 회고 코치입니다. 사용자가 "${themeTitle}"라고 2025년을 회고하고 있습니다.
 
@@ -89,13 +94,13 @@ ${conversationHistory}
 
 ## 요청:
 1. 원본 질문의 의도를 유지하면서 자연스럽고 따뜻하게 변형해주세요.
-2. ${previousAnswers.length > 0 ? '이전 답변 내용을 자연스럽게 연결하거나 언급해주세요.' : '첫 질문이니 친근하게 시작해주세요.'}
+2. ${firstQuestionInstruction}
 3. 질문은 하나만 해주세요.
 4. 반말 대신 존댓말을 사용하세요.
 
 응답 형식 (JSON):
 {
-  "summary": "${previousAnswers.length > 0 ? '이전 답변에 대한 1-2문장 공감/요약' : '사용자의 회고에 공감하며 친근하게 인사를 건네주세요.'}",
+  "summary": "${previousAnswers.length > 0 ? '이전 답변에 대한 1-2문장 공감/요약' : `사용자의 회고에 공감하며 친근하게 인사를 건네고, 총 ${totalQuestions}개의 질문을 드릴 예정임을 안내해주세요.`}",
   "question": "자연스럽게 변형된 질문"
 }`
 
