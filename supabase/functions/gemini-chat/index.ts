@@ -191,7 +191,7 @@ ${conversationHistory}
   "question": "자연스럽게 변형된 질문"
 }`
 
-  const text = await callOpenRouter(apiKey, MODELS.nano, prompt, TEMPERATURES.generateQuestion)
+  const text = await callOpenRouter(apiKey, MODELS.flash, prompt, TEMPERATURES.generateQuestion)
 
   const jsonMatch = text.match(/\{[\s\S]*\}/)
   if (!jsonMatch) {
