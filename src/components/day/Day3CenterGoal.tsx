@@ -195,7 +195,7 @@ export function Day3CenterGoal({ mandala, onSave }: Day3CenterGoalProps) {
               <div className="flex justify-start">
                 <div className="max-w-[80%] bg-primary-100 text-primary-900 rounded-2xl rounded-tl-sm px-6 py-4 shadow-sm">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm">회고 내용 분석 중</span>
+                    <span className="text-sm">회고 내용 분석 중 (약 5~10초 소요)</span>
                     <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                     <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                     <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
