@@ -12,6 +12,11 @@ interface RecommendationResponse {
   recommendations: Recommendation[]
 }
 
+export interface OtherSubGoalPlans {
+  subGoal: string
+  plans: string[]
+}
+
 /**
  * Call Supabase Edge Function for recommendation generation
  */
@@ -21,6 +26,7 @@ async function callRecommendationFunction(
     centerGoal: string
     subGoal?: string
     existingItems?: string[]
+    otherSubGoalsPlans?: OtherSubGoalPlans[]
   }
 ): Promise<RecommendationResponse> {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -66,11 +72,16 @@ export async function generateSubGoalRecommendations(
 
 /**
  * Generate action plan recommendations based on center goal and sub-goal
+ * @param centerGoal - The main goal at the center of mandala
+ * @param subGoal - The current sub-goal for which to generate action plans
+ * @param existingActionPlans - Action plans already added for this sub-goal
+ * @param otherSubGoalsPlans - Action plans from other sub-goals to avoid duplication
  */
 export async function generateActionPlanRecommendations(
   centerGoal: string,
   subGoal: string,
-  existingActionPlans: string[] = []
+  existingActionPlans: string[] = [],
+  otherSubGoalsPlans: OtherSubGoalPlans[] = []
 ): Promise<Recommendation[]> {
   try {
     const result = await callRecommendationFunction({
@@ -78,6 +89,7 @@ export async function generateActionPlanRecommendations(
       centerGoal,
       subGoal,
       existingItems: existingActionPlans.filter(Boolean),
+      otherSubGoalsPlans: otherSubGoalsPlans.filter(item => item.plans && item.plans.length > 0),
     })
     return result.recommendations || []
   } catch (error) {

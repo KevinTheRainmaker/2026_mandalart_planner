@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Button, Input, RecommendationCard } from '@/components/common'
 import { ACTION_PLAN_MAX_LENGTH } from '@/constants'
-import { generateActionPlanRecommendations } from '@/services'
+import { generateActionPlanRecommendations, OtherSubGoalPlans } from '@/services'
 import type { Mandala } from '@/types'
 
 interface DayActionPlanProps {
@@ -54,10 +54,31 @@ export function DayActionPlan({
   }
 
   const handleGenerateRecommendations = async () => {
+    // Collect action plans from other sub-goals to avoid duplication
+    const otherSubGoalsPlans: OtherSubGoalPlans[] = []
+    
+    if (mandala.action_plans && mandala.sub_goals) {
+      for (let i = 0; i < 8; i++) {
+        // Skip current sub-goal
+        if (i === subGoalIndex) continue
+        
+        const plans = mandala.action_plans[i.toString()]
+        const otherSubGoal = mandala.sub_goals[i]
+        
+        if (plans && plans.length > 0 && otherSubGoal) {
+          otherSubGoalsPlans.push({
+            subGoal: otherSubGoal,
+            plans: plans.filter(Boolean),
+          })
+        }
+      }
+    }
+    
     return generateActionPlanRecommendations(
       mandala.center_goal || '',
       subGoal,
-      actionPlans.filter(Boolean)
+      actionPlans.filter(Boolean),
+      otherSubGoalsPlans
     )
   }
 

@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { GoogleGenerativeAI } from "npm:@google/generative-ai@0.24.1"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,6 +10,97 @@ interface ChatRequest {
   payload: Record<string, unknown>
 }
 
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+
+// Model configurations
+const MODELS = {
+  flash: "google/gemini-3-flash-preview",
+  pro: "google/gemini-3-pro-preview",
+  liquid: "liquid/lfm-2.5-1.2b-thinking:free",
+  nano: "openai/gpt-5-nano",
+  gpt5: "openai/gpt-5.1"
+}
+
+// Temperature configurations for each action type
+const TEMPERATURES = {
+  generateQuestion: 0.8,      // More creative for natural conversation
+  generateGoalSuggestion: 0.7, // Balanced creativity and coherence
+  generateReport: 0.5,         // More focused and analytical
+  generateRecommendations: 0.6 // Balanced for diverse yet relevant suggestions
+}
+
+async function callOpenRouter(
+  apiKey: string,
+  model: string,
+  prompt: string,
+  temperature: number = 0.7
+): Promise<string> {
+  const headers = {
+    "Authorization": `Bearer ${apiKey}`,
+    "Content-Type": "application/json"
+  }
+
+  const payload = {
+    model,
+    messages: [{ role: "user", content: prompt }],
+    stream: true,
+    temperature
+  }
+
+  const response = await fetch(OPENROUTER_URL, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload)
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new Error(`OpenRouter API error: ${response.status} - ${errorText}`)
+  }
+
+  // Handle streaming response
+  let fullContent = ""
+  const reader = response.body?.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ""
+
+  if (!reader) {
+    throw new Error("No response body")
+  }
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+
+    buffer += decoder.decode(value, { stream: true })
+
+    while (true) {
+      const lineEnd = buffer.indexOf('\n')
+      if (lineEnd === -1) break
+
+      const line = buffer.slice(0, lineEnd).trim()
+      buffer = buffer.slice(lineEnd + 1)
+
+      if (line.startsWith('data: ')) {
+        const data = line.slice(6)
+        if (data === '[DONE]') break
+
+        try {
+          const dataObj = JSON.parse(data)
+          const content = dataObj.choices?.[0]?.delta?.content
+          if (content) {
+            fullContent += content
+          }
+        } catch {
+          // Ignore JSON parse errors for incomplete chunks
+        }
+      }
+    }
+  }
+
+  return fullContent
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -18,28 +108,27 @@ serve(async (req) => {
   }
 
   try {
-    const apiKey = Deno.env.get('GEMINI_API_KEY')
+    const apiKey = Deno.env.get('OPENROUTER_API_KEY')
     if (!apiKey) {
-      throw new Error('GEMINI_API_KEY not configured')
+      throw new Error('OPENROUTER_API_KEY not configured')
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey)
     const { action, payload } = await req.json() as ChatRequest
 
     let result: unknown
 
     switch (action) {
       case 'generateQuestion':
-        result = await handleGenerateQuestion(genAI, payload)
+        result = await handleGenerateQuestion(apiKey, payload)
         break
       case 'generateGoalSuggestion':
-        result = await handleGoalSuggestion(genAI, payload)
+        result = await handleGoalSuggestion(apiKey, payload)
         break
       case 'generateReport':
-        result = await handleGenerateReport(genAI, payload)
+        result = await handleGenerateReport(apiKey, payload)
         break
       case 'generateRecommendations':
-        result = await handleGenerateRecommendations(genAI, payload)
+        result = await handleGenerateRecommendations(apiKey, payload)
         break
       default:
         throw new Error(`Unknown action: ${action}`)
@@ -58,7 +147,7 @@ serve(async (req) => {
 })
 
 async function handleGenerateQuestion(
-  genAI: GoogleGenerativeAI,
+  apiKey: string,
   payload: Record<string, unknown>
 ): Promise<{ question: string; summary?: string }> {
   const { theme, themeTitle, baseQuestion, previousAnswers, isFirstQuestion, totalQuestions } = payload as {
@@ -69,8 +158,6 @@ async function handleGenerateQuestion(
     isFirstQuestion: boolean
     totalQuestions: number
   }
-
-  const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' })
 
   const conversationHistory = previousAnswers
     .map((qa, i) => `질문 ${i + 1}: ${qa.question}\n답변: ${qa.answer}`)
@@ -104,8 +191,7 @@ ${conversationHistory}
   "question": "자연스럽게 변형된 질문"
 }`
 
-  const result = await model.generateContent(prompt)
-  const text = result.response.text()
+  const text = await callOpenRouter(apiKey, MODELS.nano, prompt, TEMPERATURES.generateQuestion)
 
   const jsonMatch = text.match(/\{[\s\S]*\}/)
   if (!jsonMatch) {
@@ -120,7 +206,7 @@ ${conversationHistory}
 }
 
 async function handleGoalSuggestion(
-  genAI: GoogleGenerativeAI,
+  apiKey: string,
   payload: Record<string, unknown>
 ): Promise<{ suggestion: string; reasoning: string }> {
   const { themeTitle, reflectionSummary } = payload as {
@@ -128,11 +214,9 @@ async function handleGoalSuggestion(
     reflectionSummary: string
   }
 
-  const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' })
-
   const prompt = `당신은 전문 목표 설정 코치입니다. 사용자가 "${themeTitle}"라고 2025년을 회고했습니다.
 
-당신의 임무는 ‘회고의 감정/사건’에서 바로 목표를 점프하지 않고, 회고에서 반복적으로 드러난 패턴과 니즈를 한 단계 추상화한 뒤, 2026년에 가장 중요한 ‘변화의 중심축(핵심 레버)’을 정하고, 그 축을 만다라트의 중심이 될 수 있는 Outcome 목표로 표현하는 것입니다.
+당신의 임무는 '회고의 감정/사건'에서 바로 목표를 점프하지 않고, 회고에서 반복적으로 드러난 패턴과 니즈를 한 단계 추상화한 뒤, 2026년에 가장 중요한 '변화의 중심축(핵심 레버)'을 정하고, 그 축을 만다라트의 중심이 될 수 있는 Outcome 목표로 표현하는 것입니다.
 이 목표는 이후 8개의 하위 목표가 구체화될 수 있는 중심점이어야 합니다.
 
 ## 회고 내용:
@@ -141,11 +225,11 @@ ${reflectionSummary}
 ## 목표 도출 절차(반드시 따를 것)
 1) 회고에서 반복되는 **문제/니즈/가치**를 2~3개로 압축한다.
 2) 그중 2026년에 가장 큰 변화를 만들 **핵심 레버 1개**를 선택한다.
-   - 레버는 “무엇을 더/덜 하겠다” 수준이 아니라, 2026년의 삶/일을 구조적으로 바꿀 수 있는 초점이어야 한다.
+   - 레버는 "무엇을 더/덜 하겠다" 수준이 아니라, 2026년의 삶/일을 구조적으로 바꿀 수 있는 초점이어야 한다.
 3) 선택한 레버를 **결과(Outcome) 중심 목표 1문장**으로 변환한다.
    - 측정 기준(수치/빈도/마감시점/완료조건) 중 최소 1개 포함
    - 도달 여부를 판단할 수 있는 기준은 드러나되, 지나치게 세부적인 수치나 계획은 포함하지 않는다.
-   - ‘무엇을 한다’가 아니라 ‘어떤 상태에 도달한다’에 초점
+   - '무엇을 한다'가 아니라 '어떤 상태에 도달한다'에 초점
    - 너무 포괄적이거나 추상적인 표현은 피한다.
 4) 이 목표가 만다라트의 8개 영역으로 확장 가능한지 점검한다.
    - 확장 여지가 없다면, 목표가 너무 좁거나 너무 닫혀 있는지 점검하고 문장을 조정한다.
@@ -157,8 +241,8 @@ ${reflectionSummary}
 - 목표는 명확한 **결과(Outcome)** 중심의 상태 변화여야 합니다.
 - 한 문장으로 간결하되, 2026년 전체를 관통하는 중심축이며, 현실적으로 달성 가능해야 합니다.
 - 회고에서 드러난 니즈/가치와의 **논리적 연결**이 분명해야 합니다.
-- 목표는 이후 하위 목표 8개를 만들 수 있는 “중심축”이어야 합니다.
-- reason에는 ‘회고의 패턴 → 레버 선택 → 목표 문장’의 흐름이 보이도록 2~3문장으로 설명하세요
+- 목표는 이후 하위 목표 8개를 만들 수 있는 "중심축"이어야 합니다.
+- reason에는 '회고의 패턴 → 레버 선택 → 목표 문장'의 흐름이 보이도록 2~3문장으로 설명하세요
 
 ### 주의
 - 회고 테마("${themeTitle}")의 맥락을 반영하되, 과하게 테마에 얽매이지 마세요.
@@ -170,8 +254,7 @@ ${reflectionSummary}
   "reasoning": "회고 패턴과 레버 선택에 기반한 목표 제안 이유 (2-3문장)"
 }`
 
-  const result = await model.generateContent(prompt)
-  const text = result.response.text()
+  const text = await callOpenRouter(apiKey, MODELS.nano, prompt, TEMPERATURES.generateGoalSuggestion)
 
   const jsonMatch = text.match(/\{[\s\S]*\}/)
   if (!jsonMatch) {
@@ -189,7 +272,7 @@ ${reflectionSummary}
 }
 
 async function handleGenerateReport(
-  genAI: GoogleGenerativeAI,
+  apiKey: string,
   payload: Record<string, unknown>
 ): Promise<{
   reflection_summary: string
@@ -198,8 +281,6 @@ async function handleGenerateReport(
   insights: string
 }> {
   const { mandala } = payload as { mandala: Record<string, unknown> }
-
-  const model = genAI.getGenerativeModel({ model: 'gemini-3-pro-preview' })
 
   const prompt = `당신은 만다라트(Mandala Chart) 기법에 정통한 전문 목표 코치입니다.
 사용자의 만다라트 계획을 분석하여, 이미 잘 설계된 부분은 명확히 짚고, 필요한 경우에만 과하지 않은 개선 방향을 제안해주세요.
@@ -236,8 +317,7 @@ ${Object.entries(mandala.action_plans as Record<string, string[]>)
   "insights": "유지하면 좋은 설계 요소와, 필요할 경우에만 고려해볼 수 있는 가벼운 개선 방향 제안 (3-5문장)"
 }`
 
-  const result = await model.generateContent(prompt)
-  const text = result.response.text()
+  const text = await callOpenRouter(apiKey, MODELS.gpt5, prompt, TEMPERATURES.generateReport)
 
   const jsonMatch = text.match(/\{[\s\S]*\}/)
   if (!jsonMatch) {
@@ -253,28 +333,35 @@ ${Object.entries(mandala.action_plans as Record<string, string[]>)
 }
 
 async function handleGenerateRecommendations(
-  genAI: GoogleGenerativeAI,
+  apiKey: string,
   payload: Record<string, unknown>
 ): Promise<{
   recommendations: { text: string; reason: string }[]
 }> {
-  const { type, centerGoal, subGoal, existingItems } = payload as {
+  const { type, centerGoal, subGoal, existingItems, otherSubGoalsPlans } = payload as {
     type: 'subGoal' | 'actionPlan'
     centerGoal: string
     subGoal?: string
     existingItems?: string[]
+    otherSubGoalsPlans?: { subGoal: string; plans: string[] }[]
   }
-
-  const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' })
 
   const existingItemsText = existingItems?.length 
     ? `\n\n${existingItems.map((item, i) => `${i + 1}. ${item}`).join('\n')}`
     : ''
 
+  // 다른 하위 목표의 액션플랜 텍스트 생성
+  const otherPlansText = otherSubGoalsPlans?.length
+    ? otherSubGoalsPlans
+        .filter(item => item.plans && item.plans.length > 0)
+        .map(item => `[${item.subGoal}]: ${item.plans.join(', ')}`)
+        .join('\n')
+    : ''
+
   let prompt: string
 
   if (type === 'subGoal') {
-    prompt = `당신은 하나의 핵심 목표를 ‘관리 가능한 전략적 하위 영역’으로 분해하는 목표 설계 전문가입니다.
+    prompt = `당신은 하나의 핵심 목표를 '관리 가능한 전략적 하위 영역'으로 분해하는 목표 설계 전문가입니다.
 
 당신의 역할은 **핵심 목표가 달성되기 위해 결정적으로 관리되어야 할 영역들을 구조적으로 도출하는 것**입니다.
 
@@ -288,13 +375,13 @@ ${existingItemsText}
 ## 목표 해석 가이드 (중요)
 - 핵심 목표는 하나의 **도달해야 할 결과 상태**입니다
 - 하위 목표는 그 결과를 만들어내는 **조건, 역량, 성과 축, 또는 검증 요소**여야 합니다
-- 하위 목표는 **‘무엇이 갖춰져야 그 목표가 실현되는가’**의 관점에서 도출되어야 합니다
+- 하위 목표는 **'무엇이 갖춰져야 그 목표가 실현되는가'**의 관점에서 도출되어야 합니다
 
 ## 요청
 위 핵심 목표를 달성하기 위해 반드시 관리되어야 할 서로 다른 하위 목표 3개를 추천해주세요.
 
 ### 작성 원칙 (중요)
-- 하위 목표는 **행동·루틴·방법이 아닌 ‘관리 대상 영역 또는 성과 단위’**여야 합니다
+- 하위 목표는 **행동·루틴·방법이 아닌 '관리 대상 영역 또는 성과 단위'**여야 합니다
 - 각 하위 목표는 핵심 목표 달성에 **독립적으로 중요한 역할**을 해야 합니다
 - 세 하위 목표는 서로 **중복되지 않는 다른 관점**을 가져야 합니다
 - 하위 목표를 달성했을 때, 핵심 목표 달성 가능성이 **논리적으로 명확히 증가**해야 합니다
@@ -321,7 +408,7 @@ ${existingItemsText}
 }`
   } else {
     prompt = `당신은 목표를 실제 행동으로 전환하는 실행 설계 코치입니다.
-당신의 역할은 목표를 ‘일상에서 무리 없이 할 수 있는 행동’으로 바꾸는 것입니다.
+당신의 역할은 목표를 '일상에서 무리 없이 할 수 있는 행동'으로 바꾸는 것입니다.
 SMART 프레임워크를 참고하되, 행동 문구 자체는 자연스럽고 과하지 않게 설계하세요.
 
 ## 핵심 목표
@@ -330,11 +417,16 @@ ${centerGoal}
 ## 해당 하위 목표
 ${subGoal}
 
-## 이전 액션 플랜
-다음은 이전에 작성한 액션 플랜입니다.
+## 이전 액션 플랜 (현재 하위 목표)
+다음은 현재 하위 목표에서 이전에 작성한 액션 플랜입니다.
 아래와 유사한 톤과 밀도로, 겹치지 않게 추천하세요.
 ${existingItemsText}
-
+${otherPlansText ? `
+## 다른 하위 목표의 액션 플랜 (참고용)
+다음은 다른 하위 목표에서 이미 작성된 액션 플랜입니다.
+**반드시 아래 액션플랜들과 중복되지 않도록** 추천해주세요.
+${otherPlansText}
+` : ''}
 ## 요청
 위 하위 목표를 달성하기 위해 실행가능한 구체적인 액션플랜 3개를 추천해주세요.
 
@@ -345,6 +437,7 @@ ${existingItemsText}
 - **최대 20자 이내**
 - 지나치게 관리적이거나 KPI처럼 느껴지지 않게 작성
 - Macro한 행동 수준을 유지할 것 (예: 주 1회 등산, 아침 독서, 말보다 행동)
+- **다른 하위 목표의 액션플랜과 중복되지 않도록 주의**
 
 ### SMART 기준 적용
 액션플랜은 다음 SMART 기준을 고려하여 작성해야 합니다:
@@ -379,8 +472,7 @@ ${existingItemsText}
   }
 
   try {
-    const result = await model.generateContent(prompt)
-    const text = result.response.text()
+    const text = await callOpenRouter(apiKey, MODELS.nano, prompt, TEMPERATURES.generateRecommendations)
 
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
