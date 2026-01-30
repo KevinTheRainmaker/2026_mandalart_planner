@@ -43,15 +43,7 @@ export function DayActionPlan({
     })
   }
 
-  const handleRecommendationSelect = (text: string) => {
-    // Find first empty slot and fill it
-    const emptyIndex = actionPlans.findIndex((plan) => !plan.trim())
-    if (emptyIndex !== -1) {
-      const newActionPlans = [...actionPlans]
-      newActionPlans[emptyIndex] = text
-      setActionPlans(newActionPlans)
-    }
-  }
+
 
   const handleGenerateRecommendations = async () => {
     // Collect action plans from other sub-goals to avoid duplication
@@ -138,7 +130,6 @@ export function DayActionPlan({
       <RecommendationCard
         title="AI가 액션플랜을 추천해드려요"
         onGenerate={handleGenerateRecommendations}
-        onSelect={handleRecommendationSelect}
         recommendationType="actionPlan"
         centerGoal={mandala.center_goal || ''}
         subGoal={subGoal}

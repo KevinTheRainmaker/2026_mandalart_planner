@@ -38,15 +38,7 @@ export function Day5SubGoals({ mandala, onSave }: Day5SubGoalsProps) {
     })
   }
 
-  const handleRecommendationSelect = (text: string) => {
-    // Find first empty slot and fill it
-    const emptyIndex = subGoals.findIndex((goal) => !goal.trim())
-    if (emptyIndex !== -1) {
-      const newSubGoals = [...subGoals]
-      newSubGoals[emptyIndex] = text
-      setSubGoals(newSubGoals)
-    }
-  }
+
 
   const handleGenerateRecommendations = async () => {
     // Include all existing sub-goals (from mandala + current page) for context
@@ -137,7 +129,6 @@ export function Day5SubGoals({ mandala, onSave }: Day5SubGoalsProps) {
       <RecommendationCard
         title="AI가 하위 목표를 추천해드려요"
         onGenerate={handleGenerateRecommendations}
-        onSelect={handleRecommendationSelect}
         recommendationType="subGoal"
         centerGoal={mandala.center_goal || ''}
       />

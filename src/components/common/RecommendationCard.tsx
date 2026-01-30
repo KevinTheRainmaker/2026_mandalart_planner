@@ -8,7 +8,6 @@ import { saveRecommendationFeedback } from '@/services'
 interface RecommendationCardProps {
   title: string
   onGenerate: () => Promise<Recommendation[]>
-  onSelect: (text: string) => void
   recommendationType: 'subGoal' | 'actionPlan'
   centerGoal: string
   subGoal?: string
@@ -17,21 +16,18 @@ interface RecommendationCardProps {
 export function RecommendationCard({
   title,
   onGenerate,
-  onSelect,
   recommendationType,
   centerGoal,
   subGoal,
 }: RecommendationCardProps) {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [hasGenerated, setHasGenerated] = useState(false)
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
   const [feedbackGiven, setFeedbackGiven] = useState<Record<number, 'upvote' | 'downvote'>>({})
 
   const handleGenerate = async () => {
     setIsLoading(true)
-    setSelectedIndex(null)
     setCopiedIndex(null)
     setFeedbackGiven({})
     try {
@@ -46,13 +42,7 @@ export function RecommendationCard({
     }
   }
 
-  const handleSelect = (recommendation: Recommendation, index: number) => {
-    setSelectedIndex(index)
-    onSelect(recommendation.text)
-  }
-
-  const handleCopy = async (text: string, index: number, e: React.MouseEvent) => {
-    e.stopPropagation()
+  const handleCopy = async (text: string, index: number) => {
     try {
       await navigator.clipboard.writeText(text)
       setCopiedIndex(index)
@@ -65,11 +55,8 @@ export function RecommendationCard({
   const handleFeedback = async (
     rec: Recommendation,
     index: number,
-    feedback: 'upvote' | 'downvote',
-    e: React.MouseEvent
+    feedback: 'upvote' | 'downvote'
   ) => {
-    e.stopPropagation()
-    
     // Optimistically update UI
     setFeedbackGiven(prev => ({ ...prev, [index]: feedback }))
     
@@ -151,26 +138,11 @@ export function RecommendationCard({
           {recommendations.map((rec, index) => (
             <div
               key={index}
-              onClick={() => handleSelect(rec, index)}
-              className={`w-full text-left p-3 rounded-lg border-2 transition-all cursor-pointer ${
-                selectedIndex === index
-                  ? 'border-purple-500 bg-purple-100'
-                  : 'border-gray-200 bg-white hover:border-purple-300 hover:bg-purple-50'
-              }`}
+              className="w-full text-left p-3 rounded-lg border-2 border-gray-200 bg-white"
             >
               <div className="flex items-start gap-2">
-                <div
-                  className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mt-0.5 ${
-                    selectedIndex === index
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-gray-200 text-gray-600'
-                  }`}
-                >
-                  {selectedIndex === index ? (
-                    <Check size={12} weight="bold" />
-                  ) : (
-                    <span className="text-xs font-medium">{index + 1}</span>
-                  )}
+                <div className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mt-0.5 bg-gray-200 text-gray-600">
+                  <span className="text-xs font-medium">{index + 1}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-gray-900 break-words">
@@ -183,7 +155,7 @@ export function RecommendationCard({
                 <div className="flex-shrink-0 flex items-center gap-1">
                   {/* Upvote Button */}
                   <button
-                    onClick={(e) => handleFeedback(rec, index, 'upvote', e)}
+                    onClick={() => handleFeedback(rec, index, 'upvote')}
                     className={`p-1.5 rounded-md transition-all ${
                       feedbackGiven[index] === 'upvote'
                         ? 'bg-green-100 text-green-600'
@@ -197,7 +169,7 @@ export function RecommendationCard({
                   
                   {/* Downvote Button */}
                   <button
-                    onClick={(e) => handleFeedback(rec, index, 'downvote', e)}
+                    onClick={() => handleFeedback(rec, index, 'downvote')}
                     className={`p-1.5 rounded-md transition-all ${
                       feedbackGiven[index] === 'downvote'
                         ? 'bg-red-100 text-red-600'
@@ -211,7 +183,7 @@ export function RecommendationCard({
                   
                   {/* Copy Button */}
                   <button
-                    onClick={(e) => handleCopy(rec.text, index, e)}
+                    onClick={() => handleCopy(rec.text, index)}
                     className={`p-1.5 rounded-md transition-all ${
                       copiedIndex === index
                         ? 'bg-green-100 text-green-600'

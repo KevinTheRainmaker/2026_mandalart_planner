@@ -17,7 +17,7 @@ const MODELS = {
   flash: "google/gemini-3-flash-preview",
   pro: "google/gemini-3-pro-preview",
   // liquid: "liquid/lfm-2.5-1.2b-thinking:free",
-  test: "openai/gpt-5-mini",
+  flash: "openai/gpt-5-mini",
   nano: "openai/gpt-5-nano",
   gpt5: "openai/gpt-5.1"
 }
@@ -488,7 +488,7 @@ ${otherPlansText}
   }
 
   try {
-    const text = await callOpenRouter(apiKey, MODELS.test, prompt, TEMPERATURES.generateRecommendations)
+    const text = await callOpenRouter(apiKey, MODELS.flash, prompt, TEMPERATURES.generateRecommendations)
 
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
