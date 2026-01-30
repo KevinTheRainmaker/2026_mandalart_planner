@@ -62,6 +62,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_mandalas_updated_at ON mandalas;
 CREATE TRIGGER update_mandalas_updated_at
   BEFORE UPDATE ON mandalas
   FOR EACH ROW
@@ -71,28 +72,33 @@ CREATE TRIGGER update_mandalas_updated_at
 ALTER TABLE mandalas ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Users can view own mandalas
+DROP POLICY IF EXISTS "Users can view own mandalas" ON mandalas;
 CREATE POLICY "Users can view own mandalas"
   ON mandalas FOR SELECT
   USING (auth.uid() = user_id);
 
 -- Policy: Users can insert their own mandalas
+DROP POLICY IF EXISTS "Users can insert own mandalas" ON mandalas;
 CREATE POLICY "Users can insert own mandalas"
   ON mandalas FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
 -- Policy: Users can update their own mandalas
+DROP POLICY IF EXISTS "Users can update own mandalas" ON mandalas;
 CREATE POLICY "Users can update own mandalas"
   ON mandalas FOR UPDATE
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
 -- Policy: Users can delete their own mandalas
+DROP POLICY IF EXISTS "Users can delete own mandalas" ON mandalas;
 CREATE POLICY "Users can delete own mandalas"
   ON mandalas FOR DELETE
   USING (auth.uid() = user_id);
 
 -- Policy: Admins can view all mandalas
 -- Note: Replace 'admin@example.com' with actual admin email
+DROP POLICY IF EXISTS "Admins can view all mandalas" ON mandalas;
 CREATE POLICY "Admins can view all mandalas"
   ON mandalas FOR SELECT
   USING (

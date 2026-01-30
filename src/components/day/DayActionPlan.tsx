@@ -139,6 +139,9 @@ export function DayActionPlan({
         title="AI가 액션플랜을 추천해드려요"
         onGenerate={handleGenerateRecommendations}
         onSelect={handleRecommendationSelect}
+        recommendationType="actionPlan"
+        centerGoal={mandala.center_goal || ''}
+        subGoal={subGoal}
       />
 
       {/* Action Plans Input */}

@@ -112,6 +112,8 @@ export function Day4SubGoals({ mandala, onSave }: Day4SubGoalsProps) {
         title="AI가 하위 목표를 추천해드려요"
         onGenerate={handleGenerateRecommendations}
         onSelect={handleRecommendationSelect}
+        recommendationType="subGoal"
+        centerGoal={mandala.center_goal || ''}
       />
 
       {/* Sub-Goals Input */}

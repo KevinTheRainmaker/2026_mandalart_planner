@@ -1,30 +1,39 @@
 import { useState } from 'react'
-import { Sparkle, ArrowClockwise, Check, Copy } from '@phosphor-icons/react'
+import { Sparkle, ArrowClockwise, Check, Copy, ThumbsUp, ThumbsDown } from '@phosphor-icons/react'
 import { Button } from './Button'
 import { Loading } from './Loading'
 import type { Recommendation } from '@/services'
+import { saveRecommendationFeedback } from '@/services'
 
 interface RecommendationCardProps {
   title: string
   onGenerate: () => Promise<Recommendation[]>
   onSelect: (text: string) => void
+  recommendationType: 'subGoal' | 'actionPlan'
+  centerGoal: string
+  subGoal?: string
 }
 
 export function RecommendationCard({
   title,
   onGenerate,
   onSelect,
+  recommendationType,
+  centerGoal,
+  subGoal,
 }: RecommendationCardProps) {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [hasGenerated, setHasGenerated] = useState(false)
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
+  const [feedbackGiven, setFeedbackGiven] = useState<Record<number, 'upvote' | 'downvote'>>({})
 
   const handleGenerate = async () => {
     setIsLoading(true)
     setSelectedIndex(null)
     setCopiedIndex(null)
+    setFeedbackGiven({})
     try {
       const results = await onGenerate()
       setRecommendations(results)
@@ -43,7 +52,7 @@ export function RecommendationCard({
   }
 
   const handleCopy = async (text: string, index: number, e: React.MouseEvent) => {
-    e.stopPropagation() // Prevent triggering the parent button click
+    e.stopPropagation()
     try {
       await navigator.clipboard.writeText(text)
       setCopiedIndex(index)
@@ -51,6 +60,28 @@ export function RecommendationCard({
     } catch (error) {
       console.error('Failed to copy:', error)
     }
+  }
+
+  const handleFeedback = async (
+    rec: Recommendation,
+    index: number,
+    feedback: 'upvote' | 'downvote',
+    e: React.MouseEvent
+  ) => {
+    e.stopPropagation()
+    
+    // Optimistically update UI
+    setFeedbackGiven(prev => ({ ...prev, [index]: feedback }))
+    
+    // Save to database
+    await saveRecommendationFeedback({
+      type: recommendationType,
+      recommendationText: rec.text,
+      reason: rec.reason,
+      feedback,
+      centerGoal,
+      subGoal,
+    })
   }
 
   if (!hasGenerated) {
@@ -147,21 +178,54 @@ export function RecommendationCard({
                   </p>
                   <p className="text-sm text-gray-600 mt-1">{rec.reason}</p>
                 </div>
-                <button
-                  onClick={(e) => handleCopy(rec.text, index, e)}
-                  className={`flex-shrink-0 p-1.5 rounded-md transition-all ${
-                    copiedIndex === index
-                      ? 'bg-green-100 text-green-600'
-                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700'
-                  }`}
-                  title="복사하기"
-                >
-                  {copiedIndex === index ? (
-                    <Check size={14} weight="bold" />
-                  ) : (
-                    <Copy size={14} weight="bold" />
-                  )}
-                </button>
+                
+                {/* Feedback & Copy Buttons */}
+                <div className="flex-shrink-0 flex items-center gap-1">
+                  {/* Upvote Button */}
+                  <button
+                    onClick={(e) => handleFeedback(rec, index, 'upvote', e)}
+                    className={`p-1.5 rounded-md transition-all ${
+                      feedbackGiven[index] === 'upvote'
+                        ? 'bg-green-100 text-green-600'
+                        : 'bg-gray-100 text-gray-400 hover:bg-green-50 hover:text-green-500'
+                    }`}
+                    title="좋은 추천이에요"
+                    disabled={feedbackGiven[index] !== undefined}
+                  >
+                    <ThumbsUp size={14} weight={feedbackGiven[index] === 'upvote' ? 'fill' : 'regular'} />
+                  </button>
+                  
+                  {/* Downvote Button */}
+                  <button
+                    onClick={(e) => handleFeedback(rec, index, 'downvote', e)}
+                    className={`p-1.5 rounded-md transition-all ${
+                      feedbackGiven[index] === 'downvote'
+                        ? 'bg-red-100 text-red-600'
+                        : 'bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-500'
+                    }`}
+                    title="개선이 필요해요"
+                    disabled={feedbackGiven[index] !== undefined}
+                  >
+                    <ThumbsDown size={14} weight={feedbackGiven[index] === 'downvote' ? 'fill' : 'regular'} />
+                  </button>
+                  
+                  {/* Copy Button */}
+                  <button
+                    onClick={(e) => handleCopy(rec.text, index, e)}
+                    className={`p-1.5 rounded-md transition-all ${
+                      copiedIndex === index
+                        ? 'bg-green-100 text-green-600'
+                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700'
+                    }`}
+                    title="복사하기"
+                  >
+                    {copiedIndex === index ? (
+                      <Check size={14} weight="bold" />
+                    ) : (
+                      <Copy size={14} weight="bold" />
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -174,4 +238,3 @@ export function RecommendationCard({
     </div>
   )
 }
-
