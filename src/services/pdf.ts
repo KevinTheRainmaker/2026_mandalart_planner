@@ -188,11 +188,12 @@ export async function generateMandalaPDF(
     const getFontSize = (text: string, baseSize: number): number => {
       const length = text?.length ?? 0
       if (length <= 4) return baseSize
-      if (length <= 8) return Math.max(baseSize - 1, 8)
+      if (length <= 8) return Math.max(baseSize - 1, 7)
       if (length <= 12) return Math.max(baseSize - 2, 7)
-      if (length <= 16) return Math.max(baseSize - 3, 7)
-      if (length <= 24) return Math.max(baseSize - 4, 6)
-      return Math.max(baseSize - 5, 6)
+      if (length <= 18) return Math.max(baseSize - 3, 6)
+      if (length <= 25) return Math.max(baseSize - 4, 6)
+      if (length <= 35) return Math.max(baseSize - 5, 5)
+      return Math.max(baseSize - 6, 5)
     }
 
     // Create HTML template - Vertical A4 (210×297mm → ~794×1123px at 96dpi)
@@ -209,12 +210,12 @@ export async function generateMandalaPDF(
     container.style.boxSizing = "border-box"
     container.style.display = "flex"
     container.style.flexDirection = "column"
-    container.style.gap = "20px"
+    container.style.gap = "12px"
     ;(container.style as any).webkitFontSmoothing = "antialiased"
 
     // Build grid HTML
-    const cellSize = 75 // Each cell in px
-    const sectionGap = 4
+    const cellSize = 90 // Each cell in px (increased from 75 for better readability)
+    const sectionGap = 3
 
     let gridHTML = ""
     for (let sectionRow = 0; sectionRow < 3; sectionRow++) {
@@ -296,9 +297,7 @@ export async function generateMandalaPDF(
               fontWeight = "500"
             }
 
-            const lineHeightPx = Math.ceil(fontSize * 1.4)
-            const maxLines = 3
-            const maxHeightPx = lineHeightPx * maxLines + 4
+            const lineHeightPx = Math.ceil(fontSize * 1.45)
 
             gridHTML += `
               <div style="
@@ -307,19 +306,20 @@ export async function generateMandalaPDF(
                 align-items: center;
                 justify-content: center;
                 text-align: center;
-                padding: 4px 3px;
+                padding: 2px;
                 background-color: ${cellBg};
                 box-sizing: border-box;
-                overflow: hidden;
                 color: ${colors.text};
               ">
                 <div style="
                   width: 100%;
+                  height: 100%;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
                   font-size: ${fontSize}px;
                   font-weight: ${fontWeight};
                   line-height: ${lineHeightPx}px;
-                  max-height: ${maxHeightPx}px;
-                  overflow: hidden;
                   word-break: keep-all;
                   overflow-wrap: break-word;
                 ">${escapeHtml(cellContent)}</div>
@@ -349,11 +349,11 @@ export async function generateMandalaPDF(
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        gap: 20px;
-        padding: 15px 20px;
+        gap: 15px;
+        padding: 10px 15px;
         background-color: white;
         border: 2px solid ${colors.gridBorder};
-        border-radius: 12px;
+        border-radius: 10px;
       ">
         <!-- Left: Name & Keywords -->
         <div style="flex: 1;">
@@ -376,7 +376,7 @@ export async function generateMandalaPDF(
           border: 2px solid ${colors.border};
           position: relative;
         ">
-          <div style="font-size: 12px; color: ${colors.text}; line-height: 1.6; text-align: center;">
+          <div style="font-size: 14px; color: ${colors.text}; line-height: 1.6; text-align: center;">
             ${escapeHtml(mandala.commitment || "2026년 다짐을 입력해주세요!")}
           </div>
         </div>

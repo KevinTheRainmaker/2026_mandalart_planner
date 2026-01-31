@@ -57,11 +57,12 @@ export function MandalaPreview({ mandala, colorTheme = 'pink' }: MandalaPreviewP
   const getFontSize = (text: string, baseSize: number): number => {
     const length = text?.length ?? 0
     if (length <= 4) return baseSize
-    if (length <= 8) return Math.max(baseSize - 1, 8)
+    if (length <= 8) return Math.max(baseSize - 1, 7)
     if (length <= 12) return Math.max(baseSize - 2, 7)
-    if (length <= 16) return Math.max(baseSize - 3, 7)
-    if (length <= 24) return Math.max(baseSize - 4, 6)
-    return Math.max(baseSize - 5, 6)
+    if (length <= 18) return Math.max(baseSize - 3, 6)
+    if (length <= 25) return Math.max(baseSize - 4, 6)
+    if (length <= 35) return Math.max(baseSize - 5, 5)
+    return Math.max(baseSize - 6, 5)
   }
 
   // Generate grid cells for each section
@@ -180,7 +181,7 @@ export function MandalaPreview({ mandala, colorTheme = 'pink' }: MandalaPreviewP
               border: `2px solid ${colors.border}`,
             }}
           >
-            <div className="text-xs leading-relaxed">
+            <div className="text-sm leading-relaxed">
               {mandala.commitment || '2026년 다짐을 입력해주세요!'}
             </div>
           </div>
@@ -218,21 +219,16 @@ export function MandalaPreview({ mandala, colorTheme = 'pink' }: MandalaPreviewP
               {section.cells.map((cell) => (
                 <div
                   key={cell.key}
-                  className="flex items-center justify-center text-center p-1 overflow-hidden"
+                  className="flex items-center justify-center text-center p-0.5"
                   style={{
                     backgroundColor: cell.cellBg,
                     fontSize: `${cell.fontSize}px`,
                     fontWeight: cell.fontWeight,
                     border: `1px solid ${colors.gridBorder}`,
+                    lineHeight: `${Math.ceil(cell.fontSize * 1.45)}px`,
                   }}
                 >
-                  <div 
-                    className="w-full break-keep overflow-hidden"
-                    style={{
-                      lineHeight: `${Math.ceil(cell.fontSize * 1.4)}px`,
-                      maxHeight: `${3 * Math.ceil(cell.fontSize * 1.4) + 4}px`,
-                    }}
-                  >
+                  <div className="w-full h-full flex items-center justify-center break-keep">
                     {cell.content}
                   </div>
                 </div>
