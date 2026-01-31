@@ -71,50 +71,8 @@ export function AuthCallback() {
             redirectPath = '/step/1'
           }
 
-          // Use BroadcastChannel to communicate with original tab (if any)
-          const channel = new BroadcastChannel('mandala_auth')
-          let hasOriginalTab = false
-
-          // Listen for acknowledgment from original tab
-          const ackPromise = new Promise<boolean>((resolve) => {
-            const timeout = setTimeout(() => {
-              resolve(false) // No original tab responded
-            }, 300) // Wait 300ms for response
-
-            channel.onmessage = (event) => {
-              if (event.data.type === 'AUTH_ACK') {
-                clearTimeout(timeout)
-                resolve(true) // Original tab acknowledged
-              }
-            }
-          })
-
-          // Broadcast auth success and redirect path
-          channel.postMessage({
-            type: 'AUTH_SUCCESS',
-            redirect: redirectPath,
-          })
-
-          // Wait for acknowledgment
-          hasOriginalTab = await ackPromise
-
-          if (hasOriginalTab) {
-            // Original tab exists - show message and try to close
-            alert('로그인에 성공하였습니다!\n\n기존 탭으로 돌아가 진행해주세요.')
-            channel.close()
-            
-            // Try to close this tab
-            window.close()
-            
-            // If window.close() didn't work (browser security), navigate as fallback
-            setTimeout(() => {
-              navigate(redirectPath, { replace: true })
-            }, 500)
-          } else {
-            // No original tab - proceed in this tab directly
-            channel.close()
-            navigate(redirectPath, { replace: true })
-          }
+          // Navigate directly in this tab
+          navigate(redirectPath, { replace: true })
 
         } else {
           // No session, redirect to home

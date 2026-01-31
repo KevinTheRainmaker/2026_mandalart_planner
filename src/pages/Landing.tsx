@@ -1,31 +1,12 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 import { MagnifyingGlass, Target, ChartBar } from '@phosphor-icons/react'
 import { Button, GoalCarousel } from '@/components/common'
 import { EmailAuthModal } from '@/components/auth'
 import { Container } from '@/components/layout'
 
 export function Landing() {
-  const navigate = useNavigate()
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [authMode, setAuthMode] = useState<'start' | 'continue'>('start')
-
-  // Listen for auth success from other tabs via BroadcastChannel
-  useEffect(() => {
-    const channel = new BroadcastChannel('mandala_auth')
-    
-    channel.onmessage = (event) => {
-      if (event.data.type === 'AUTH_SUCCESS' && event.data.redirect) {
-        console.log('Auth success detected from another tab:', event.data)
-        // Send acknowledgment back
-        channel.postMessage({ type: 'AUTH_ACK' })
-        // Navigate to the redirect path
-        navigate(event.data.redirect, { replace: true })
-      }
-    }
-
-    return () => channel.close()
-  }, [navigate])
 
   const handleStart = () => {
     setAuthMode('start')
