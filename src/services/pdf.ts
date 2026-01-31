@@ -318,7 +318,7 @@ export async function generateMandalaPDF(
                 line-height: ${lineHeightPx}px;
                 word-break: keep-all;
                 overflow-wrap: break-word;
-              "><span style="display: inline-block; transform: translateY(-3.5px);">${escapeHtml(cellContent)}</span></td></tr></table>
+              "><span style="display: inline-block; transform: translateY(-4px);">${escapeHtml(cellContent)}</span></td></tr></table>
             `
           }
         }
@@ -365,13 +365,15 @@ export async function generateMandalaPDF(
         <!-- Right: Commitment -->
         <div style="
           flex: 1;
-          padding: 12px 16px;
+          padding: 8px 16px;
           background-color: ${colors.subGoal};
           border-radius: 20px;
           border: 2px solid ${colors.border};
-          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         ">
-          <div style="font-size: 16px; font-weight: 700; color: ${colors.text}; line-height: 1.5; text-align: center;">
+          <div style="font-size: 16px; font-weight: 700; color: ${colors.text}; line-height: 1.4; text-align: center; transform: translateY(-2px);">
             ${escapeHtml(mandala.commitment || "2026년 다짐을 입력해주세요!")}
           </div>
         </div>
