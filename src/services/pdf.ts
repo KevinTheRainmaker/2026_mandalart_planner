@@ -297,19 +297,20 @@ export async function generateMandalaPDF(
               fontWeight = "500"
             }
 
-            const lineHeightPx = Math.ceil(fontSize * 1.2)
+            const lineHeightPx = Math.ceil(fontSize * 1.15)
 
             gridHTML += `
               <div style="
                 border: 1px solid ${colors.gridBorder};
-                display: flex;
-                align-items: center;
-                justify-content: center;
+                display: table-cell;
+                vertical-align: middle;
                 text-align: center;
                 padding: 2px;
                 background-color: ${cellBg};
                 box-sizing: border-box;
                 color: ${colors.text};
+                width: ${cellSize}px;
+                height: ${cellSize}px;
               ">
                 <span style="
                   font-size: ${fontSize}px;
