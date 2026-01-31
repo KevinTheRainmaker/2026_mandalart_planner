@@ -1,12 +1,13 @@
-import { useState, useRef, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PencilSimple, ChartBar, ArrowClockwise } from '@phosphor-icons/react'
 import { Container, Header } from '@/components/layout'
-import { MandalaGrid, MandalaPreview, type MandalaGridRef } from '@/components/mandala'
+import { MandalaPreview } from '@/components/mandala'
 import { Button, Loading } from '@/components/common'
 import { useAuth, useMandala } from '@/hooks'
 import { useMandalaStore } from '@/store'
 import { generateAIReport, generateMandalaPDF } from '@/services'
+import { updateMandala as updateMandalaApi } from '@/lib/api'
 import type { AISummary } from '@/types'
 
 // 만다라 콘텐츠 해시 생성 (AI 분석에 영향을 주는 필드들만)
@@ -44,8 +45,12 @@ export function Day13() {
   const [aiReport, setAiReport] = useState<AISummary | null>(
     mandala?.ai_summary || null
   )
-  const mandalaGridRef = useRef<HTMLDivElement>(null)
-  const mandalaGridComponentRef = useRef<MandalaGridRef>(null)
+  
+  // Editable name and commitment
+  const [editableName, setEditableName] = useState(mandala?.name || '')
+  const [editableCommitment, setEditableCommitment] = useState(mandala?.commitment || '')
+  const [isSaving, setIsSaving] = useState(false)
+  const { setMandala } = useMandalaStore()
 
   // 현재 만다라 콘텐츠 해시
   const currentHash = useMemo(() => {
@@ -126,16 +131,57 @@ export function Day13() {
     navigate('/mandala/edit')
   }
 
+  const handleNameBlur = async () => {
+    if (!mandala?.id || editableName === mandala.name) return
+    setIsSaving(true)
+    try {
+      const updated = await updateMandalaApi(mandala.id, { name: editableName })
+      if (updated) {
+        setMandala(updated)
+      }
+    } catch (error) {
+      console.error('Failed to update name:', error)
+      setEditableName(mandala.name || '')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleCommitmentBlur = async () => {
+    if (!mandala?.id || editableCommitment === mandala.commitment) return
+    setIsSaving(true)
+    try {
+      const updated = await updateMandalaApi(mandala.id, { commitment: editableCommitment })
+      if (updated) {
+        setMandala(updated)
+      }
+    } catch (error) {
+      console.error('Failed to update commitment:', error)
+      setEditableCommitment(mandala.commitment || '')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   const handleDownloadMandala = async () => {
-    if (!mandalaGridRef.current || !mandala) return
+    if (!mandala) return
 
     try {
-      // 먼저 이름과 다짐을 저장
-      if (mandalaGridComponentRef.current) {
-        await mandalaGridComponentRef.current.saveChanges()
+      // Save current name and commitment before download
+      if (mandala.id) {
+        const updates: Record<string, string> = {}
+        if (editableName !== mandala.name) updates.name = editableName
+        if (editableCommitment !== mandala.commitment) updates.commitment = editableCommitment
+        
+        if (Object.keys(updates).length > 0) {
+          const updated = await updateMandalaApi(mandala.id, updates)
+          if (updated) {
+            setMandala(updated)
+          }
+        }
       }
 
-      // 저장 후 Zustand store에서 최신 mandala 가져오기
+      // Get latest mandala from store
       const latestMandala = useMandalaStore.getState().mandala
       if (!latestMandala) {
         throw new Error('Mandala data not found after save')
@@ -148,7 +194,7 @@ export function Day13() {
       })
 
       const today = new Date().toISOString().split('T')[0]
-      await generateMandalaPDF(mandalaGridRef.current, latestMandala, `mandala-chart-${today}.pdf`)
+      await generateMandalaPDF(null, latestMandala, `mandala-chart-${today}.pdf`)
     } catch (error) {
       console.error('Failed to download Mandala PDF:', error)
       alert('PDF 다운로드에 실패했습니다. 다시 시도해주세요.')
@@ -295,26 +341,76 @@ export function Day13() {
             </div>
           )}
 
-          {/* Mandala Grid */}
+          {/* PDF Download Section */}
           {aiReport && (
             <div className="bg-white rounded-lg border-2 border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                만다라트 9×9 그리드
+                만다라트 계획서 다운로드
               </h3>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-gray-600 mb-6">
                 이름과 다짐을 입력하고 PDF로 저장하세요.
               </p>
-              <div ref={mandalaGridRef}>
-                <MandalaGrid ref={mandalaGridComponentRef} mandala={mandala} onUpdate={updateMandala} />
+              
+              {/* Name Input */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  이름 {isSaving && <span className="text-xs text-gray-500">(저장 중...)</span>}
+                </label>
+                <input
+                  type="text"
+                  value={editableName}
+                  onChange={(e) => setEditableName(e.target.value)}
+                  onBlur={handleNameBlur}
+                  disabled={isSaving}
+                  placeholder="이름을 입력하세요"
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+                />
               </div>
-              <div className="flex justify-center mt-6">
+
+              {/* Keywords Display */}
+              {mandala.ai_summary?.keywords && mandala.ai_summary.keywords.length > 0 && (
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    핵심 키워드
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {mandala.ai_summary.keywords.map((keyword, index) => (
+                      <span
+                        key={index}
+                        className="bg-primary-100 text-primary-800 px-3 py-1 rounded-full text-sm font-medium"
+                      >
+                        {keyword}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Commitment Input */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  다짐 {isSaving && <span className="text-xs text-gray-500">(저장 중...)</span>}
+                </label>
+                <textarea
+                  value={editableCommitment}
+                  onChange={(e) => setEditableCommitment(e.target.value)}
+                  onBlur={handleCommitmentBlur}
+                  disabled={isSaving}
+                  placeholder="올해의 다짐을 입력하세요"
+                  rows={3}
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:outline-none resize-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+                />
+              </div>
+
+              {/* Download Button */}
+              <div className="flex justify-center mb-8">
                 <Button onClick={handleDownloadMandala} variant="secondary" size="lg" className="flex items-center gap-2">
                   <ChartBar size={20} weight="bold" /> 만다라트 계획서 PDF 다운로드
                 </Button>
               </div>
               
               {/* PDF Preview */}
-              <div className="mt-8">
+              <div>
                 <h4 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
                   📄 PDF 미리보기
                 </h4>
@@ -322,7 +418,7 @@ export function Day13() {
                   실제 PDF에 표시될 내용입니다. 이름과 다짐을 입력하면 미리보기에 반영됩니다.
                 </p>
                 <div className="border border-gray-200 rounded-lg overflow-hidden shadow-inner bg-gray-100 p-2">
-                  <MandalaPreview mandala={mandala} />
+                  <MandalaPreview mandala={{...mandala, name: editableName, commitment: editableCommitment}} />
                 </div>
               </div>
             </div>
