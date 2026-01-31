@@ -2,7 +2,7 @@ import { useState, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PencilSimple, ChartBar, ArrowClockwise } from '@phosphor-icons/react'
 import { Container, Header } from '@/components/layout'
-import { MandalaGrid, type MandalaGridRef } from '@/components/mandala'
+import { MandalaGrid, MandalaPreview, type MandalaGridRef } from '@/components/mandala'
 import { Button, Loading } from '@/components/common'
 import { useAuth, useMandala } from '@/hooks'
 import { useMandalaStore } from '@/store'
@@ -311,6 +311,19 @@ export function Day13() {
                 <Button onClick={handleDownloadMandala} variant="secondary" size="lg" className="flex items-center gap-2">
                   <ChartBar size={20} weight="bold" /> 만다라트 계획서 PDF 다운로드
                 </Button>
+              </div>
+              
+              {/* PDF Preview */}
+              <div className="mt-8">
+                <h4 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  📄 PDF 미리보기
+                </h4>
+                <p className="text-xs text-gray-500 mb-4">
+                  실제 PDF에 표시될 내용입니다. 이름과 다짐을 입력하면 미리보기에 반영됩니다.
+                </p>
+                <div className="border border-gray-200 rounded-lg overflow-hidden shadow-inner bg-gray-100 p-2">
+                  <MandalaPreview mandala={mandala} />
+                </div>
               </div>
             </div>
           )}
