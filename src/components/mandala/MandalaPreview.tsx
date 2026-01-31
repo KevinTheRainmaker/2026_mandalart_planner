@@ -163,10 +163,10 @@ export function MandalaPreview({ mandala, colorTheme = 'pink' }: MandalaPreviewP
         >
           {/* Left: Name & Keywords */}
           <div className="flex-1">
-            <div className="text-sm font-bold mb-1">
+            <div className="text-base font-extrabold mb-1">
               {mandala.name || '이름'}의 2026년 KEYWORD
             </div>
-            <div className="text-xs leading-relaxed">
+            <div className="text-sm font-bold leading-relaxed">
               {keywords.length > 0
                 ? keywords.join(', ')
                 : '키워드를 입력해주세요'}
@@ -181,7 +181,7 @@ export function MandalaPreview({ mandala, colorTheme = 'pink' }: MandalaPreviewP
               border: `2px solid ${colors.border}`,
             }}
           >
-            <div className="text-sm leading-relaxed">
+            <div className="text-base font-bold leading-snug">
               {mandala.commitment || '2026년 다짐을 입력해주세요!'}
             </div>
           </div>
@@ -225,7 +225,7 @@ export function MandalaPreview({ mandala, colorTheme = 'pink' }: MandalaPreviewP
                     fontSize: `${cell.fontSize}px`,
                     fontWeight: cell.fontWeight,
                     border: `1px solid ${colors.gridBorder}`,
-                    lineHeight: `${Math.ceil(cell.fontSize * 1.25)}px`,
+                    lineHeight: `${Math.ceil(cell.fontSize * 1.2)}px`,
                   }}
                 >
                   <span className="break-keep">

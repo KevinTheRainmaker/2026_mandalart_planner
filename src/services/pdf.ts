@@ -297,7 +297,7 @@ export async function generateMandalaPDF(
               fontWeight = "500"
             }
 
-            const lineHeightPx = Math.ceil(fontSize * 1.25)
+            const lineHeightPx = Math.ceil(fontSize * 1.2)
 
             gridHTML += `
               <div style="
@@ -306,7 +306,7 @@ export async function generateMandalaPDF(
                 align-items: center;
                 justify-content: center;
                 text-align: center;
-                padding: 3px 2px;
+                padding: 2px;
                 background-color: ${cellBg};
                 box-sizing: border-box;
                 color: ${colors.text};
@@ -317,7 +317,6 @@ export async function generateMandalaPDF(
                   line-height: ${lineHeightPx}px;
                   word-break: keep-all;
                   overflow-wrap: break-word;
-                  display: block;
                 ">${escapeHtml(cellContent)}</span>
               </div>
             `
@@ -353,10 +352,10 @@ export async function generateMandalaPDF(
       ">
         <!-- Left: Name & Keywords -->
         <div style="flex: 1;">
-          <div style="font-size: 14px; font-weight: 700; color: ${colors.text}; margin-bottom: 8px;">
+          <div style="font-size: 16px; font-weight: 800; color: ${colors.text}; margin-bottom: 8px;">
             ${escapeHtml(mandala.name || "이름")}의 2026년 KEYWORD
           </div>
-          <div style="font-size: 13px; color: ${colors.text}; line-height: 1.6;">
+          <div style="font-size: 15px; font-weight: 700; color: ${colors.text}; line-height: 1.6;">
             ${keywords.length > 0 
               ? escapeHtml(keywords.join(', '))
               : '키워드를 입력해주세요'}
@@ -372,7 +371,7 @@ export async function generateMandalaPDF(
           border: 2px solid ${colors.border};
           position: relative;
         ">
-          <div style="font-size: 14px; color: ${colors.text}; line-height: 1.6; text-align: center;">
+          <div style="font-size: 16px; font-weight: 700; color: ${colors.text}; line-height: 1.5; text-align: center;">
             ${escapeHtml(mandala.commitment || "2026년 다짐을 입력해주세요!")}
           </div>
         </div>
