@@ -311,14 +311,14 @@ export async function generateMandalaPDF(
               "><tr><td style="
                 vertical-align: middle;
                 text-align: center;
-                padding: 0 2px 3px 2px;
+                padding: 2px;
                 color: ${colors.text};
                 font-size: ${fontSize}px;
                 font-weight: ${fontWeight};
                 line-height: ${lineHeightPx}px;
                 word-break: keep-all;
                 overflow-wrap: break-word;
-              ">${escapeHtml(cellContent)}</td></tr></table>
+              "><span style="display: inline-block; transform: translateY(-3px);">${escapeHtml(cellContent)}</span></td></tr></table>
             `
           }
         }
