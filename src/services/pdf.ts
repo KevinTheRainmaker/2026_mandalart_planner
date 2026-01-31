@@ -299,27 +299,26 @@ export async function generateMandalaPDF(
 
             const lineHeightPx = Math.ceil(fontSize * 1.15)
 
+            // Use nested table for reliable vertical centering in html2canvas
             gridHTML += `
-              <div style="
+              <table style="
                 border: 1px solid ${colors.gridBorder};
-                display: table-cell;
+                background-color: ${cellBg};
+                width: 100%;
+                height: 100%;
+                border-collapse: collapse;
+                table-layout: fixed;
+              "><tr><td style="
                 vertical-align: middle;
                 text-align: center;
                 padding: 2px;
-                background-color: ${cellBg};
-                box-sizing: border-box;
                 color: ${colors.text};
-                width: ${cellSize}px;
-                height: ${cellSize}px;
-              ">
-                <span style="
-                  font-size: ${fontSize}px;
-                  font-weight: ${fontWeight};
-                  line-height: ${lineHeightPx}px;
-                  word-break: keep-all;
-                  overflow-wrap: break-word;
-                ">${escapeHtml(cellContent)}</span>
-              </div>
+                font-size: ${fontSize}px;
+                font-weight: ${fontWeight};
+                line-height: ${lineHeightPx}px;
+                word-break: keep-all;
+                overflow-wrap: break-word;
+              ">${escapeHtml(cellContent)}</td></tr></table>
             `
           }
         }
