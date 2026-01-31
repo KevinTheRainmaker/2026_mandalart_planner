@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PencilSimple, ChartBar, ArrowClockwise, X } from '@phosphor-icons/react'
 import { Container, Header } from '@/components/layout'
@@ -53,6 +53,19 @@ export function Day13() {
   const [newKeywordInput, setNewKeywordInput] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const { setMandala } = useMandalaStore()
+
+  // Sync editable states with mandala data
+  useEffect(() => {
+    if (mandala?.name !== undefined) setEditableName(mandala.name || '')
+  }, [mandala?.name])
+  
+  useEffect(() => {
+    if (mandala?.commitment !== undefined) setEditableCommitment(mandala.commitment || '')
+  }, [mandala?.commitment])
+  
+  useEffect(() => {
+    if (mandala?.ai_summary?.keywords) setEditableKeywords(mandala.ai_summary.keywords)
+  }, [mandala?.ai_summary?.keywords])
 
   // 현재 만다라 콘텐츠 해시
   const currentHash = useMemo(() => {
