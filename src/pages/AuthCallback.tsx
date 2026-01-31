@@ -4,9 +4,6 @@ import { supabase } from '@/lib/supabase'
 import { createMandala } from '@/lib/api'
 import { Loading } from '@/components/common'
 
-// Key for cross-tab auth communication
-const AUTH_SUCCESS_KEY = 'mandala_auth_success'
-
 export function AuthCallback() {
   const navigate = useNavigate()
 
@@ -74,29 +71,50 @@ export function AuthCallback() {
             redirectPath = '/step/1'
           }
 
-          // Broadcast auth success to other tabs
-          localStorage.setItem(AUTH_SUCCESS_KEY, JSON.stringify({
-            timestamp: Date.now(),
-            redirect: redirectPath,
-          }))
+          // Use BroadcastChannel to communicate with original tab (if any)
+          const channel = new BroadcastChannel('mandala_auth')
+          let hasOriginalTab = false
 
-          // Small delay to ensure broadcast is received
-          setTimeout(() => {
-            // Clear the broadcast
-            localStorage.removeItem(AUTH_SUCCESS_KEY)
-            
-            // Show success message and try to close the tab
+          // Listen for acknowledgment from original tab
+          const ackPromise = new Promise<boolean>((resolve) => {
+            const timeout = setTimeout(() => {
+              resolve(false) // No original tab responded
+            }, 300) // Wait 300ms for response
+
+            channel.onmessage = (event) => {
+              if (event.data.type === 'AUTH_ACK') {
+                clearTimeout(timeout)
+                resolve(true) // Original tab acknowledged
+              }
+            }
+          })
+
+          // Broadcast auth success and redirect path
+          channel.postMessage({
+            type: 'AUTH_SUCCESS',
+            redirect: redirectPath,
+          })
+
+          // Wait for acknowledgment
+          hasOriginalTab = await ackPromise
+
+          if (hasOriginalTab) {
+            // Original tab exists - show message and try to close
             alert('로그인에 성공하였습니다!\n\n기존 탭으로 돌아가 진행해주세요.')
+            channel.close()
             
-            // Try to close this tab (may not work due to browser security)
+            // Try to close this tab
             window.close()
             
-            // Wait a bit to see if window closed, only navigate if it didn't
+            // If window.close() didn't work (browser security), navigate as fallback
             setTimeout(() => {
-              // If we're still here, window.close() didn't work, so navigate
               navigate(redirectPath, { replace: true })
             }, 500)
-          }, 100)
+          } else {
+            // No original tab - proceed in this tab directly
+            channel.close()
+            navigate(redirectPath, { replace: true })
+          }
 
         } else {
           // No session, redirect to home

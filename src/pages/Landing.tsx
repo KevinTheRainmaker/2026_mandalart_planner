@@ -5,31 +5,26 @@ import { Button, GoalCarousel } from '@/components/common'
 import { EmailAuthModal } from '@/components/auth'
 import { Container } from '@/components/layout'
 
-// Key for cross-tab auth communication (must match AuthCallback)
-const AUTH_SUCCESS_KEY = 'mandala_auth_success'
-
 export function Landing() {
   const navigate = useNavigate()
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [authMode, setAuthMode] = useState<'start' | 'continue'>('start')
 
-  // Listen for auth success from other tabs
+  // Listen for auth success from other tabs via BroadcastChannel
   useEffect(() => {
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === AUTH_SUCCESS_KEY && event.newValue) {
-        try {
-          const data = JSON.parse(event.newValue)
-          console.log('Auth success detected from another tab:', data)
-          // Navigate to the redirect path from the other tab
-          navigate(data.redirect, { replace: true })
-        } catch (e) {
-          console.error('Failed to parse auth success data:', e)
-        }
+    const channel = new BroadcastChannel('mandala_auth')
+    
+    channel.onmessage = (event) => {
+      if (event.data.type === 'AUTH_SUCCESS' && event.data.redirect) {
+        console.log('Auth success detected from another tab:', event.data)
+        // Send acknowledgment back
+        channel.postMessage({ type: 'AUTH_ACK' })
+        // Navigate to the redirect path
+        navigate(event.data.redirect, { replace: true })
       }
     }
 
-    window.addEventListener('storage', handleStorageChange)
-    return () => window.removeEventListener('storage', handleStorageChange)
+    return () => channel.close()
   }, [navigate])
 
   const handleStart = () => {
