@@ -45,7 +45,7 @@ export function DayActionPlan({
 
 
 
-  const handleGenerateRecommendations = async () => {
+  const handleGenerateRecommendations = async (customPrompt?: string) => {
     // Collect action plans from other sub-goals to avoid duplication
     const otherSubGoalsPlans: OtherSubGoalPlans[] = []
     
@@ -70,7 +70,8 @@ export function DayActionPlan({
       mandala.center_goal || '',
       subGoal,
       actionPlans.filter(Boolean),
-      otherSubGoalsPlans
+      otherSubGoalsPlans,
+      customPrompt
     )
   }
 

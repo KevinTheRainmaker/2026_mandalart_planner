@@ -17,7 +17,7 @@ const MODELS = {
   flash: "google/gemini-3-flash-preview",
   pro: "google/gemini-3-pro-preview",
   // liquid: "liquid/lfm-2.5-1.2b-thinking:free",
-  flash: "openai/gpt-5-mini",
+  // flash: "openai/gpt-5-mini",
   nano: "openai/gpt-5-nano",
   gpt5: "openai/gpt-5.1"
 }
@@ -354,12 +354,13 @@ async function handleGenerateRecommendations(
 ): Promise<{
   recommendations: { text: string; reason: string }[]
 }> {
-  const { type, centerGoal, subGoal, existingItems, otherSubGoalsPlans } = payload as {
+  const { type, centerGoal, subGoal, existingItems, otherSubGoalsPlans, customPrompt } = payload as {
     type: 'subGoal' | 'actionPlan'
     centerGoal: string
     subGoal?: string
     existingItems?: string[]
     otherSubGoalsPlans?: { subGoal: string; plans: string[] }[]
+    customPrompt?: string
   }
 
   const existingItemsText = existingItems?.length 
@@ -387,6 +388,11 @@ ${centerGoal}
 ## 이전 하위 목표
 다음은 이전에 작성한 하위 목표입니다. 아래와 유사한 스타일로, 겹치지 않게 추천해주세요.
 ${existingItemsText}
+${customPrompt ? `
+## 사용자 요청사항
+다음은 사용자가 추천 시 고려해달라고 요청한 내용입니다. 이 요청을 반드시 반영해주세요.
+"${customPrompt}"
+` : ''}
 
 ## 목표 해석 가이드 (중요)
 - 핵심 목표는 하나의 **도달해야 할 결과 상태**입니다
@@ -442,6 +448,10 @@ ${otherPlansText ? `
 다음은 다른 하위 목표에서 이미 작성된 액션 플랜입니다.
 **반드시 아래 액션플랜들과 중복되지 않도록** 추천해주세요.
 ${otherPlansText}
+` : ''}${customPrompt ? `
+## 사용자 요청사항
+다음은 사용자가 추천 시 고려해달라고 요청한 내용입니다. 이 요청을 반드시 반영해주세요.
+"${customPrompt}"
 ` : ''}
 ## 요청
 위 하위 목표를 달성하기 위해 실행가능한 구체적인 액션플랜 3개를 추천해주세요.

@@ -27,6 +27,7 @@ async function callRecommendationFunction(
     subGoal?: string
     existingItems?: string[]
     otherSubGoalsPlans?: OtherSubGoalPlans[]
+    customPrompt?: string
   }
 ): Promise<RecommendationResponse> {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -55,13 +56,15 @@ async function callRecommendationFunction(
  */
 export async function generateSubGoalRecommendations(
   centerGoal: string,
-  existingSubGoals: string[] = []
+  existingSubGoals: string[] = [],
+  customPrompt?: string
 ): Promise<Recommendation[]> {
   try {
     const result = await callRecommendationFunction({
       type: 'subGoal',
       centerGoal,
       existingItems: existingSubGoals.filter(Boolean),
+      customPrompt,
     })
     return result.recommendations || []
   } catch (error) {
@@ -76,12 +79,14 @@ export async function generateSubGoalRecommendations(
  * @param subGoal - The current sub-goal for which to generate action plans
  * @param existingActionPlans - Action plans already added for this sub-goal
  * @param otherSubGoalsPlans - Action plans from other sub-goals to avoid duplication
+ * @param customPrompt - Optional user-provided context for recommendation
  */
 export async function generateActionPlanRecommendations(
   centerGoal: string,
   subGoal: string,
   existingActionPlans: string[] = [],
-  otherSubGoalsPlans: OtherSubGoalPlans[] = []
+  otherSubGoalsPlans: OtherSubGoalPlans[] = [],
+  customPrompt?: string
 ): Promise<Recommendation[]> {
   try {
     const result = await callRecommendationFunction({
@@ -90,6 +95,7 @@ export async function generateActionPlanRecommendations(
       subGoal,
       existingItems: existingActionPlans.filter(Boolean),
       otherSubGoalsPlans: otherSubGoalsPlans.filter(item => item.plans && item.plans.length > 0),
+      customPrompt,
     })
     return result.recommendations || []
   } catch (error) {

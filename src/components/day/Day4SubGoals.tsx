@@ -34,7 +34,7 @@ export function Day4SubGoals({ mandala, onSave }: Day4SubGoalsProps) {
 
 
 
-  const handleGenerateRecommendations = async () => {
+  const handleGenerateRecommendations = async (customPrompt?: string) => {
     // Combine all existing sub-goals (from mandala and current page) to avoid duplicates
     const allExistingSubGoals = [
       ...(mandala.sub_goals || []).filter(Boolean),
@@ -44,7 +44,8 @@ export function Day4SubGoals({ mandala, onSave }: Day4SubGoalsProps) {
     const uniqueSubGoals = [...new Set(allExistingSubGoals)]
     return generateSubGoalRecommendations(
       mandala.center_goal || '',
-      uniqueSubGoals
+      uniqueSubGoals,
+      customPrompt
     )
   }
 

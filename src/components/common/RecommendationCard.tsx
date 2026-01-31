@@ -7,7 +7,7 @@ import { saveRecommendationFeedback } from '@/services'
 
 interface RecommendationCardProps {
   title: string
-  onGenerate: () => Promise<Recommendation[]>
+  onGenerate: (customPrompt?: string) => Promise<Recommendation[]>
   recommendationType: 'subGoal' | 'actionPlan'
   centerGoal: string
   subGoal?: string
@@ -25,13 +25,14 @@ export function RecommendationCard({
   const [hasGenerated, setHasGenerated] = useState(false)
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
   const [feedbackGiven, setFeedbackGiven] = useState<Record<number, 'upvote' | 'downvote'>>({})
+  const [customPrompt, setCustomPrompt] = useState('')
 
   const handleGenerate = async () => {
     setIsLoading(true)
     setCopiedIndex(null)
     setFeedbackGiven({})
     try {
-      const results = await onGenerate()
+      const results = await onGenerate(customPrompt.trim() || undefined)
       setRecommendations(results)
       setHasGenerated(true)
     } catch (error) {
@@ -79,24 +80,44 @@ export function RecommendationCard({
             <Sparkle size={20} weight="fill" className="text-purple-600" />
             <span className="font-medium text-purple-900">{title}</span>
           </div>
-          <Button
-            onClick={handleGenerate}
-            disabled={isLoading}
-            size="sm"
-            variant="secondary"
-            className="flex items-center gap-2"
-          >
-            {isLoading ? (
-              <>
-                <Loading size="sm" /> 생성 중...
-              </>
-            ) : (
-              <>
-                <Sparkle size={16} weight="bold" /> AI 추천받기
-              </>
-            )}
-          </Button>
         </div>
+        
+        {/* Custom prompt input */}
+        <div className="space-y-2">
+          <label className="block text-sm text-gray-600">
+            추천 방향을 알려주세요 (선택사항)
+          </label>
+          <input
+            type="text"
+            value={customPrompt}
+            onChange={(e) => setCustomPrompt(e.target.value.slice(0, 50))}
+            placeholder="예: 건강 관련 목표 위주로 추천해줘"
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
+            maxLength={50}
+            disabled={isLoading}
+          />
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-gray-400">{customPrompt.length}/50자</span>
+            <Button
+              onClick={handleGenerate}
+              disabled={isLoading}
+              size="sm"
+              variant="secondary"
+              className="flex items-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <Loading size="sm" /> 생성 중...
+                </>
+              ) : (
+                <>
+                  <Sparkle size={16} weight="bold" /> AI 추천받기
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+        
         {isLoading && (
           <div className="py-4 text-center">
             <Loading size="md" message="SMART 프레임워크 기준으로 추천을 생성하고 있어요..." />
