@@ -18,3 +18,10 @@ export {
   TOTAL_SUB_GOALS,
   TOTAL_ACTION_PLANS_PER_GOAL,
 } from './questions'
+
+export {
+  COLOR_PALETTES,
+  DEFAULT_THEME,
+  type ColorTheme,
+  type ColorPalette,
+} from './colorPalette'

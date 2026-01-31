@@ -8,6 +8,7 @@ import { useAuth, useMandala } from '@/hooks'
 import { useMandalaStore } from '@/store'
 import { generateAIReport, generateMandalaPDF } from '@/services'
 import { updateMandala as updateMandalaApi } from '@/lib/api'
+import { COLOR_PALETTES, type ColorTheme } from '@/constants'
 import type { AISummary } from '@/types'
 
 // 만다라 콘텐츠 해시 생성 (AI 분석에 영향을 주는 필드들만)
@@ -52,6 +53,7 @@ export function Day13() {
   const [editableKeywords, setEditableKeywords] = useState<string[]>(mandala?.ai_summary?.keywords || [])
   const [newKeywordInput, setNewKeywordInput] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+  const [selectedTheme, setSelectedTheme] = useState<ColorTheme>('pink')
   const { setMandala } = useMandalaStore()
 
   // Sync editable states with mandala data
@@ -209,7 +211,7 @@ export function Day13() {
       })
 
       const today = new Date().toISOString().split('T')[0]
-      await generateMandalaPDF(null, latestMandala, `mandala-chart-${today}.pdf`)
+      await generateMandalaPDF(null, latestMandala, `mandala-chart-${today}.pdf`, selectedTheme)
     } catch (error) {
       console.error('Failed to download Mandala PDF:', error)
       alert('PDF 다운로드에 실패했습니다. 다시 시도해주세요.')
@@ -478,6 +480,32 @@ export function Day13() {
                 />
               </div>
 
+              {/* Color Palette Selector */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  🎨 색상 팔레트 선택
+                </label>
+                <div className="flex gap-3 flex-wrap">
+                  {(Object.keys(COLOR_PALETTES) as ColorTheme[]).map((theme) => (
+                    <button
+                      key={theme}
+                      onClick={() => setSelectedTheme(theme)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all ${
+                        selectedTheme === theme
+                          ? 'border-primary-500 ring-2 ring-primary-200'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div 
+                        className="w-5 h-5 rounded-full border border-gray-300"
+                        style={{ backgroundColor: COLOR_PALETTES[theme].subGoal }}
+                      />
+                      <span className="text-sm font-medium">{COLOR_PALETTES[theme].name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Download Button */}
               <div className="flex justify-center mb-8">
                 <Button onClick={handleDownloadMandala} variant="secondary" size="lg" className="flex items-center gap-2">
@@ -494,7 +522,10 @@ export function Day13() {
                   실제 PDF에 표시될 내용입니다. 이름과 다짐을 입력하면 미리보기에 반영됩니다.
                 </p>
                 <div className="border border-gray-200 rounded-lg overflow-hidden shadow-inner bg-gray-100 p-2">
-                  <MandalaPreview mandala={{...mandala, name: editableName, commitment: editableCommitment, ai_summary: mandala.ai_summary ? {...mandala.ai_summary, keywords: editableKeywords} : null}} />
+                  <MandalaPreview 
+                    mandala={{...mandala, name: editableName, commitment: editableCommitment, ai_summary: mandala.ai_summary ? {...mandala.ai_summary, keywords: editableKeywords} : null}} 
+                    colorTheme={selectedTheme}
+                  />
                 </div>
               </div>
             </div>

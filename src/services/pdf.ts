@@ -131,76 +131,114 @@ export async function generateReportPDF(
 
 /**
  * Generate designed Mandala PDF with Korean text support
- * Fixes: font loading timing, fractional borders, baseline clipping
+ * Vertical A4 layout (210×297mm) with improved typography and color palette
  */
 export async function generateMandalaPDF(
   _element: HTMLElement | null,
   mandala: Mandala,
-  filename: string = "mandala-chart.pdf"
+  filename: string = "mandala-chart.pdf",
+  colorTheme: 'pink' | 'blue' | 'green' | 'beige' = 'pink'
 ): Promise<boolean> {
   try {
+    // Color palette definitions
+    const palettes = {
+      pink: {
+        background: '#FFF8F6',
+        centerGoal: '#FFDDD2',
+        subGoal: '#FFE8E0',
+        border: '#C9897B',
+        text: '#6B4F4F',
+        gridBorder: '#E8C4BB',
+      },
+      blue: {
+        background: '#F6F9FF',
+        centerGoal: '#C5D8FF',
+        subGoal: '#DBE6FF',
+        border: '#7B97C9',
+        text: '#4F5A6B',
+        gridBorder: '#B4C5E8',
+      },
+      green: {
+        background: '#F6FFF8',
+        centerGoal: '#C5FFD2',
+        subGoal: '#DBFFE4',
+        border: '#7BC987',
+        text: '#4F6B52',
+        gridBorder: '#B4E8BB',
+      },
+      beige: {
+        background: '#F5EFE6',
+        centerGoal: '#E7D2BC',
+        subGoal: '#F3E8DA',
+        border: '#8B7355',
+        text: '#2D2D2D',
+        gridBorder: '#C4B49D',
+      },
+    }
+
+    const colors = palettes[colorTheme]
+
     // Get mandala data
     const centerGoal = mandala.center_goal || "핵심 목표"
     const subGoals = mandala.sub_goals || []
     const actionPlans = mandala.action_plans || {}
     const keywords = mandala.ai_summary?.keywords || []
-    const BEIGE_LIGHT = "#F3E8DA" // 연한 베이지 (하위 목표용)
-    const BEIGE_DARK  = "#E7D2BC" // 조금 더 진한 베이지 (핵심 목표용)
-    
-    // Helper function to determine font size based on text length (더 공격적으로)
+
+    // Helper function to determine font size based on text length
     const getFontSize = (text: string, baseSize: number): number => {
       const length = text?.length ?? 0
-      if (length <= 5) return baseSize
-      if (length <= 10) return Math.max(baseSize - 1, 7)
-      if (length <= 15) return Math.max(baseSize - 2, 7)
-      if (length <= 20) return Math.max(baseSize - 3, 6)
-      if (length <= 30) return Math.max(baseSize - 4, 6)
-      if (length <= 40) return Math.max(baseSize - 5, 5)
-      return Math.max(baseSize - 6, 5)
+      if (length <= 4) return baseSize
+      if (length <= 8) return Math.max(baseSize - 1, 8)
+      if (length <= 12) return Math.max(baseSize - 2, 7)
+      if (length <= 16) return Math.max(baseSize - 3, 7)
+      if (length <= 24) return Math.max(baseSize - 4, 6)
+      return Math.max(baseSize - 5, 6)
     }
 
-    // Create HTML template (캡처 안정성을 위해 px 고정 권장)
-    // 96dpi 기준 A4 landscape 근사값: 1122 x 794
+    // Create HTML template - Vertical A4 (210×297mm → ~794×1123px at 96dpi)
     const container = document.createElement("div")
     container.style.position = "absolute"
     container.style.left = "-9999px"
     container.style.top = "0"
-    container.style.width = "1022px"
-    container.style.height = "754px"
-    container.style.backgroundColor = "#F5EFE6"
+    container.style.width = "794px"
+    container.style.height = "1123px"
+    container.style.backgroundColor = colors.background
     container.style.fontFamily =
-      'system-ui, -apple-system, "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif'
-    container.style.padding = "15px"
+      '"Nanum Gothic", "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif'
+    container.style.padding = "30px"
     container.style.boxSizing = "border-box"
     container.style.display = "flex"
+    container.style.flexDirection = "column"
     container.style.gap = "20px"
-    // 폰트 렌더링/안정성 보조 (브라우저별 영향 다름)
     ;(container.style as any).webkitFontSmoothing = "antialiased"
-    ;(container.style as any).textRendering = "geometricPrecision"
 
     // Build grid HTML
+    const cellSize = 75 // Each cell in px
+    const sectionGap = 4
+
     let gridHTML = ""
     for (let sectionRow = 0; sectionRow < 3; sectionRow++) {
       for (let sectionCol = 0; sectionCol < 3; sectionCol++) {
         const sectionIndex = sectionRow * 3 + sectionCol
         const isCenter = sectionIndex === 4
         const subGoalIndex = sectionIndex > 4 ? sectionIndex - 1 : sectionIndex
-        const subGoal = isCenter ? "" : subGoals[subGoalIndex] || "세부 목표"
+        const subGoal = isCenter ? "" : subGoals[subGoalIndex] || ""
         const plans = isCenter ? [] : actionPlans[subGoalIndex.toString()] || []
 
-        // 각 섹션의 외곽선은 굵게, 크기는 고정 (220px)
         gridHTML += `
           <div style="
             background-color: white;
-            border: 3px solid #333;
+            border: 2px solid ${colors.gridBorder};
+            border-radius: 8px;
             position: relative;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             grid-template-rows: repeat(3, 1fr);
             gap: 0;
-            width: 220px;
-            height: 220px;
+            width: ${cellSize * 3}px;
+            height: ${cellSize * 3}px;
             box-sizing: border-box;
+            overflow: hidden;
           ">
         `
 
@@ -209,12 +247,13 @@ export async function generateMandalaPDF(
           gridHTML += `
             <div style="
               position: absolute;
-              top: 2px;
-              left: 2px;
-              font-size: 8px;
-              color: #666;
+              top: 3px;
+              left: 5px;
+              font-size: 9px;
+              color: ${colors.border};
               z-index: 10;
               line-height: 1;
+              font-weight: 600;
             ">#${subGoalIndex + 1}</div>
           `
         }
@@ -225,73 +264,67 @@ export async function generateMandalaPDF(
             const isCenterCell = cellIndex === 4
 
             let cellContent = ""
-            let fontSize = 8
+            let fontSize = 9
             let cellBg = "white"
+            let fontWeight = "500"
+            
+            // Determine background color
             if (isCenter && isCenterCell) {
-              cellBg = BEIGE_DARK
-            } else if (
-              (isCenter && !isCenterCell) || 
-              (!isCenter && isCenterCell)    
-            ) {
-              cellBg = BEIGE_LIGHT
+              cellBg = colors.centerGoal
+            } else if ((isCenter && !isCenterCell) || (!isCenter && isCenterCell)) {
+              cellBg = colors.subGoal
             }
 
-            let cellStyle = `
-            border: 1px solid #ddd;
-            display: grid;
-            place-items: center;
-            text-align: center;
-            - padding: 6px 6px;
-            + padding: 7px 6px 5px 6px;  /* top right bottom left */
-            background-color: ${cellBg};
-            box-sizing: border-box;
-            - overflow: hidden;
-            + overflow: visible;
-            `
-          
+            // Determine content and styling
             if (isCenter && isCenterCell) {
               cellContent = centerGoal
-              fontSize = getFontSize(centerGoal, 11)
-              cellStyle += `font-weight: 700; font-size: ${fontSize}px;`
+              fontSize = getFontSize(centerGoal, 13)
+              fontWeight = "800"
             } else if (isCenter && !isCenterCell) {
               const subGoalIdx = cellIndex < 4 ? cellIndex : cellIndex - 1
-              cellContent = subGoals[subGoalIdx] || "세부 목표"
-              fontSize = getFontSize(cellContent, 9)
-              cellStyle += `font-weight: 600; font-size: ${fontSize}px;`
+              cellContent = subGoals[subGoalIdx] || ""
+              fontSize = getFontSize(cellContent, 10)
+              fontWeight = "700"
             } else if (!isCenter && isCenterCell) {
               cellContent = subGoal
-              fontSize = getFontSize(subGoal, 10)
-              cellStyle += `font-weight: 700; font-size: ${fontSize}px;`
+              fontSize = getFontSize(subGoal, 11)
+              fontWeight = "700"
             } else if (!isCenter) {
               const planIndex = cellIndex < 4 ? cellIndex : cellIndex - 1
               cellContent = plans[planIndex] || ""
-              fontSize = getFontSize(cellContent, 8)
-              cellStyle += `font-weight: 500; font-size: ${fontSize}px;`
+              fontSize = getFontSize(cellContent, 9)
+              fontWeight = "500"
             }
-            
 
-            const clampLines = 3
-            const lineHeightPx = Math.ceil(fontSize * 1.45)  // 정수 px로 고정
-            const maxHeightPx = clampLines * lineHeightPx + 6 // 하단 안전버퍼(6px)
-            
-            
+            const lineHeightPx = Math.ceil(fontSize * 1.4)
+            const maxLines = 3
+            const maxHeightPx = lineHeightPx * maxLines + 4
+
             gridHTML += `
-            <div style="${cellStyle}">
               <div style="
-                width: 100%;
-                box-sizing: border-box;
-                word-break: keep-all;
-                overflow-wrap: break-word;
+                border: 1px solid ${colors.gridBorder};
+                display: flex;
+                align-items: center;
+                justify-content: center;
                 text-align: center;
-          
-                line-height: ${lineHeightPx}px;    /* ✅ px 정수 */
-                max-height: ${maxHeightPx}px;      /* ✅ px 정수 */
-                padding: 0 0 6px 0;                /* ✅ 하단 버퍼(px) */
+                padding: 4px 3px;
+                background-color: ${cellBg};
+                box-sizing: border-box;
                 overflow: hidden;
-              ">${escapeHtml(cellContent)}</div>
-            </div>
-          `
-          
+                color: ${colors.text};
+              ">
+                <div style="
+                  width: 100%;
+                  font-size: ${fontSize}px;
+                  font-weight: ${fontWeight};
+                  line-height: ${lineHeightPx}px;
+                  max-height: ${maxHeightPx}px;
+                  overflow: hidden;
+                  word-break: keep-all;
+                  overflow-wrap: break-word;
+                ">${escapeHtml(cellContent)}</div>
+              </div>
+            `
           }
         }
 
@@ -299,37 +332,53 @@ export async function generateMandalaPDF(
       }
     }
 
-    // Build full HTML
+    // Build full HTML with vertical layout
     container.innerHTML = `
-      <div style="flex: 0 0 220px; color: #2D2D2D;">
-        <!-- Title Section -->
-        <div style="margin-bottom: 25px;">
-          <div style="font-size: 20px; font-weight: 800; margin-bottom: 6px;">
-            ${escapeHtml(mandala.name || "")}의
+      <!-- Header Section -->
+      <div style="text-align: center; padding-bottom: 10px;">
+        <div style="font-size: 32px; font-weight: 800; color: ${colors.text}; margin-bottom: 8px;">
+          2026
+        </div>
+        <div style="font-size: 26px; font-weight: 700; color: ${colors.border}; letter-spacing: 2px;">
+          만다라트 차트
+        </div>
+      </div>
+
+      <!-- Keywords & Commitment Section -->
+      <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+        padding: 15px 20px;
+        background-color: white;
+        border: 2px solid ${colors.gridBorder};
+        border-radius: 12px;
+      ">
+        <!-- Left: Name & Keywords -->
+        <div style="flex: 1;">
+          <div style="font-size: 14px; font-weight: 700; color: ${colors.text}; margin-bottom: 8px;">
+            ${escapeHtml(mandala.name || "이름")}의 2026년 KEYWORD
           </div>
-          <div style="font-size: 17px; font-weight: 800;">2026 만다라트</div>
+          <div style="font-size: 13px; color: ${colors.text}; line-height: 1.6;">
+            ${keywords.length > 0 
+              ? escapeHtml(keywords.join(', '))
+              : '키워드를 입력해주세요'}
+          </div>
         </div>
 
-        <!-- Keywords Section -->
-        <div style="margin-bottom: 25px;">
-          <div style="font-size: 15px; font-weight: 800; margin-bottom: 6px;">keyword</div>
-          <div style="font-size: 11px; line-height: 1.6; margin-bottom: 6px;">
-            ${
-              keywords.length > 0
-                ? escapeHtml(keywords.slice(0, 4).join(", "))
-                : "키워드 3~5개를 적어주세요!"
-            }
+        <!-- Right: Commitment -->
+        <div style="
+          flex: 1;
+          padding: 12px 16px;
+          background-color: ${colors.subGoal};
+          border-radius: 20px;
+          border: 2px solid ${colors.border};
+          position: relative;
+        ">
+          <div style="font-size: 12px; color: ${colors.text}; line-height: 1.6; text-align: center;">
+            ${escapeHtml(mandala.commitment || "2026년 다짐을 입력해주세요!")}
           </div>
-          <div style="border-bottom: 2px solid #2D2D2D; width: 180px;"></div>
-        </div>
-
-        <!-- Commitment Section -->
-        <div>
-          <div style="font-size: 16px; font-weight: 800; margin-bottom: 8px;">다짐 한 마디!!</div>
-          <div style="font-size: 12px; line-height: 1.6; margin-bottom: 8px; word-break: keep-all;">
-            ${escapeHtml(mandala.commitment || "")}
-          </div>
-          <div style="border-bottom: 2px solid #2D2D2D; width: 180px;"></div>
         </div>
       </div>
 
@@ -337,30 +386,34 @@ export async function generateMandalaPDF(
       <div style="
         flex: 1;
         display: grid;
-        grid-template-columns: repeat(3, 220px);
-        grid-template-rows: repeat(3, 220px);
-        gap: 6px;
+        grid-template-columns: repeat(3, ${cellSize * 3}px);
+        grid-template-rows: repeat(3, ${cellSize * 3}px);
+        gap: ${sectionGap}px;
         justify-content: center;
-        align-content: start;
+        align-content: center;
       ">
         ${gridHTML}
+      </div>
+
+      <!-- Footer -->
+      <div style="text-align: center; font-size: 10px; color: ${colors.border}; padding-top: 5px;">
+        Created with 2026 만다라트 목표 설계
       </div>
     `
 
     // Append to body temporarily
     document.body.appendChild(container)
 
-    // FIX 0) 캡처 전에 폰트 로딩 완료를 기다리기 (매우 중요)
+    // Wait for font loading
     if ((document as any).fonts?.ready) {
       await (document as any).fonts.ready
     }
-    // 일부 환경에서 렌더 트리 안정화용 한 프레임 대기
     await new Promise<void>((r) => requestAnimationFrame(() => r()))
 
     // Convert to canvas with high quality
     const canvas = await html2canvas(container, {
       scale: 3,
-      backgroundColor: "#F5EFE6",
+      backgroundColor: colors.background,
       logging: false,
       width: container.offsetWidth,
       height: container.offsetHeight,
@@ -370,10 +423,10 @@ export async function generateMandalaPDF(
     // Remove temporary element
     document.body.removeChild(container)
 
-    // Create PDF
+    // Create PDF - Portrait A4
     const imgData = canvas.toDataURL("image/png")
     const doc = new jsPDF({
-      orientation: "landscape",
+      orientation: "portrait",
       unit: "mm",
       format: "a4",
     })

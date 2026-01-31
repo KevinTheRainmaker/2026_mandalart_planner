@@ -1,15 +1,53 @@
 import { useMemo } from 'react'
 import type { Mandala } from '@/types'
+import type { ColorTheme } from '@/constants'
 
 interface MandalaPreviewProps {
   mandala: Mandala
+  colorTheme?: ColorTheme
+}
+
+const PALETTES = {
+  pink: {
+    background: '#FFF8F6',
+    centerGoal: '#FFDDD2',
+    subGoal: '#FFE8E0',
+    border: '#C9897B',
+    text: '#6B4F4F',
+    gridBorder: '#E8C4BB',
+  },
+  blue: {
+    background: '#F6F9FF',
+    centerGoal: '#C5D8FF',
+    subGoal: '#DBE6FF',
+    border: '#7B97C9',
+    text: '#4F5A6B',
+    gridBorder: '#B4C5E8',
+  },
+  green: {
+    background: '#F6FFF8',
+    centerGoal: '#C5FFD2',
+    subGoal: '#DBFFE4',
+    border: '#7BC987',
+    text: '#4F6B52',
+    gridBorder: '#B4E8BB',
+  },
+  beige: {
+    background: '#F5EFE6',
+    centerGoal: '#E7D2BC',
+    subGoal: '#F3E8DA',
+    border: '#8B7355',
+    text: '#2D2D2D',
+    gridBorder: '#C4B49D',
+  },
 }
 
 /**
  * Mandala PDF Preview Component
- * Renders the exact same layout as the PDF output
+ * Renders the exact same layout as the PDF output (Vertical A4)
  */
-export function MandalaPreview({ mandala }: MandalaPreviewProps) {
+export function MandalaPreview({ mandala, colorTheme = 'pink' }: MandalaPreviewProps) {
+  const colors = PALETTES[colorTheme]
   const centerGoal = mandala.center_goal || '핵심 목표'
   const subGoals = mandala.sub_goals || []
   const actionPlans = mandala.action_plans || {}
@@ -18,13 +56,12 @@ export function MandalaPreview({ mandala }: MandalaPreviewProps) {
   // Helper function to determine font size based on text length
   const getFontSize = (text: string, baseSize: number): number => {
     const length = text?.length ?? 0
-    if (length <= 5) return baseSize
-    if (length <= 10) return Math.max(baseSize - 1, 7)
-    if (length <= 15) return Math.max(baseSize - 2, 7)
-    if (length <= 20) return Math.max(baseSize - 3, 6)
-    if (length <= 30) return Math.max(baseSize - 4, 6)
-    if (length <= 40) return Math.max(baseSize - 5, 5)
-    return Math.max(baseSize - 6, 5)
+    if (length <= 4) return baseSize
+    if (length <= 8) return Math.max(baseSize - 1, 8)
+    if (length <= 12) return Math.max(baseSize - 2, 7)
+    if (length <= 16) return Math.max(baseSize - 3, 7)
+    if (length <= 24) return Math.max(baseSize - 4, 6)
+    return Math.max(baseSize - 5, 6)
   }
 
   // Generate grid cells for each section
@@ -35,7 +72,7 @@ export function MandalaPreview({ mandala }: MandalaPreviewProps) {
         const sectionIndex = sectionRow * 3 + sectionCol
         const isCenter = sectionIndex === 4
         const subGoalIndex = sectionIndex > 4 ? sectionIndex - 1 : sectionIndex
-        const subGoal = isCenter ? '' : subGoals[subGoalIndex] || '세부 목표'
+        const subGoal = isCenter ? '' : subGoals[subGoalIndex] || ''
         const plans = isCenter ? [] : actionPlans[subGoalIndex.toString()] || []
 
         const cells = []
@@ -45,27 +82,27 @@ export function MandalaPreview({ mandala }: MandalaPreviewProps) {
             const isCenterCell = cellIndex === 4
 
             let cellContent = ''
-            let fontSize = 8
+            let fontSize = 9
             let cellBg = 'white'
             let fontWeight = 500
 
             // Determine background color
             if (isCenter && isCenterCell) {
-              cellBg = '#E7D2BC' // BEIGE_DARK
+              cellBg = colors.centerGoal
             } else if ((isCenter && !isCenterCell) || (!isCenter && isCenterCell)) {
-              cellBg = '#F3E8DA' // BEIGE_LIGHT
+              cellBg = colors.subGoal
             }
 
             // Determine content and styling
             if (isCenter && isCenterCell) {
               cellContent = centerGoal
-              fontSize = getFontSize(centerGoal, 11)
-              fontWeight = 700
+              fontSize = getFontSize(centerGoal, 12)
+              fontWeight = 800
             } else if (isCenter && !isCenterCell) {
               const subGoalIdx = cellIndex < 4 ? cellIndex : cellIndex - 1
-              cellContent = subGoals[subGoalIdx] || '세부 목표'
-              fontSize = getFontSize(cellContent, 9)
-              fontWeight = 600
+              cellContent = subGoals[subGoalIdx] || ''
+              fontSize = getFontSize(cellContent, 10)
+              fontWeight = 700
             } else if (!isCenter && isCenterCell) {
               cellContent = subGoal
               fontSize = getFontSize(subGoal, 10)
@@ -73,7 +110,7 @@ export function MandalaPreview({ mandala }: MandalaPreviewProps) {
             } else if (!isCenter) {
               const planIndex = cellIndex < 4 ? cellIndex : cellIndex - 1
               cellContent = plans[planIndex] || ''
-              fontSize = getFontSize(cellContent, 8)
+              fontSize = getFontSize(cellContent, 9)
               fontWeight = 500
             }
 
@@ -96,51 +133,62 @@ export function MandalaPreview({ mandala }: MandalaPreviewProps) {
       }
     }
     return sections
-  }, [centerGoal, subGoals, actionPlans])
+  }, [centerGoal, subGoals, actionPlans, colors])
 
   return (
     <div className="w-full overflow-x-auto">
       <div 
-        className="min-w-[900px] flex gap-4 p-4 rounded-lg"
+        className="min-w-[600px] flex flex-col gap-3 p-5 rounded-lg"
         style={{ 
-          backgroundColor: '#F5EFE6',
-          fontFamily: 'system-ui, -apple-system, "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif'
+          backgroundColor: colors.background,
+          fontFamily: 'system-ui, -apple-system, "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif',
+          color: colors.text,
         }}
       >
-        {/* Left Panel - Title, Keywords, Commitment */}
-        <div className="flex-shrink-0 w-[200px] text-[#2D2D2D]">
-          {/* Title Section */}
-          <div className="mb-6">
-            <div className="text-lg font-extrabold mb-1">
-              {mandala.name || '이름'}의
-            </div>
-            <div className="text-base font-extrabold">2026 만다라트</div>
+        {/* Header Section */}
+        <div className="text-center pb-2">
+          <div className="text-2xl font-extrabold mb-1" style={{ color: colors.text }}>
+            2026
           </div>
-
-          {/* Keywords Section */}
-          <div className="mb-6">
-            <div className="text-sm font-extrabold mb-1">keyword</div>
-            <div className="text-xs leading-relaxed mb-1">
-              {keywords.length > 0
-                ? keywords.slice(0, 4).join(', ')
-                : '키워드 3~5개를 적어주세요!'}
-            </div>
-            <div className="border-b-2 border-[#2D2D2D] w-[160px]" />
-          </div>
-
-          {/* Commitment Section */}
-          <div>
-            <div className="text-sm font-extrabold mb-2">다짐 한 마디!!</div>
-            <div className="text-xs leading-relaxed mb-2 break-keep">
-              {mandala.commitment || '다짐을 입력해주세요'}
-            </div>
-            <div className="border-b-2 border-[#2D2D2D] w-[160px]" />
+          <div className="text-xl font-bold tracking-wide" style={{ color: colors.border }}>
+            만다라트 차트
           </div>
         </div>
 
-        {/* Right Panel - Mandala Grid */}
+        {/* Keywords & Commitment Section */}
         <div 
-          className="flex-1 grid gap-1"
+          className="flex justify-between items-start gap-4 p-3 bg-white rounded-xl"
+          style={{ border: `2px solid ${colors.gridBorder}` }}
+        >
+          {/* Left: Name & Keywords */}
+          <div className="flex-1">
+            <div className="text-sm font-bold mb-1">
+              {mandala.name || '이름'}의 2026년 KEYWORD
+            </div>
+            <div className="text-xs leading-relaxed">
+              {keywords.length > 0
+                ? keywords.join(', ')
+                : '키워드를 입력해주세요'}
+            </div>
+          </div>
+
+          {/* Right: Commitment */}
+          <div 
+            className="flex-1 py-2 px-3 rounded-2xl text-center"
+            style={{ 
+              backgroundColor: colors.subGoal,
+              border: `2px solid ${colors.border}`,
+            }}
+          >
+            <div className="text-xs leading-relaxed">
+              {mandala.commitment || '2026년 다짐을 입력해주세요!'}
+            </div>
+          </div>
+        </div>
+
+        {/* Mandala Grid */}
+        <div 
+          className="grid gap-1 justify-center"
           style={{
             gridTemplateColumns: 'repeat(3, 1fr)',
             gridTemplateRows: 'repeat(3, 1fr)',
@@ -149,16 +197,20 @@ export function MandalaPreview({ mandala }: MandalaPreviewProps) {
           {gridSections.map((section) => (
             <div
               key={section.key}
-              className="relative bg-white border-[3px] border-[#333] grid"
+              className="relative bg-white grid overflow-hidden rounded-lg"
               style={{
                 gridTemplateColumns: 'repeat(3, 1fr)',
                 gridTemplateRows: 'repeat(3, 1fr)',
+                border: `2px solid ${colors.gridBorder}`,
                 aspectRatio: '1',
               }}
             >
               {/* Section number */}
               {!section.isCenter && (
-                <div className="absolute top-[2px] left-[2px] text-[8px] text-gray-500 z-10">
+                <div 
+                  className="absolute top-[3px] left-[5px] text-[9px] font-semibold z-10"
+                  style={{ color: colors.border }}
+                >
                   #{section.subGoalIndex + 1}
                 </div>
               )}
@@ -166,18 +218,19 @@ export function MandalaPreview({ mandala }: MandalaPreviewProps) {
               {section.cells.map((cell) => (
                 <div
                   key={cell.key}
-                  className="border border-gray-200 grid place-items-center text-center p-1 overflow-hidden"
+                  className="flex items-center justify-center text-center p-1 overflow-hidden"
                   style={{
                     backgroundColor: cell.cellBg,
                     fontSize: `${cell.fontSize}px`,
                     fontWeight: cell.fontWeight,
+                    border: `1px solid ${colors.gridBorder}`,
                   }}
                 >
                   <div 
                     className="w-full break-keep overflow-hidden"
                     style={{
-                      lineHeight: `${Math.ceil(cell.fontSize * 1.45)}px`,
-                      maxHeight: `${3 * Math.ceil(cell.fontSize * 1.45) + 6}px`,
+                      lineHeight: `${Math.ceil(cell.fontSize * 1.4)}px`,
+                      maxHeight: `${3 * Math.ceil(cell.fontSize * 1.4) + 4}px`,
                     }}
                   >
                     {cell.content}
@@ -186,6 +239,11 @@ export function MandalaPreview({ mandala }: MandalaPreviewProps) {
               ))}
             </div>
           ))}
+        </div>
+
+        {/* Footer */}
+        <div className="text-center text-[10px] pt-1" style={{ color: colors.border }}>
+          Created with 2026 만다라트 목표 설계
         </div>
       </div>
     </div>
