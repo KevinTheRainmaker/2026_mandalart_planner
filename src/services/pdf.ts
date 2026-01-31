@@ -297,7 +297,7 @@ export async function generateMandalaPDF(
               fontWeight = "500"
             }
 
-            const lineHeightPx = Math.ceil(fontSize * 1.15)
+            const lineHeightPx = Math.ceil(fontSize * 1.1)
 
             // Use nested table for reliable vertical centering in html2canvas
             gridHTML += `
@@ -311,7 +311,7 @@ export async function generateMandalaPDF(
               "><tr><td style="
                 vertical-align: middle;
                 text-align: center;
-                padding: 2px;
+                padding: 0 2px 3px 2px;
                 color: ${colors.text};
                 font-size: ${fontSize}px;
                 font-weight: ${fontWeight};
