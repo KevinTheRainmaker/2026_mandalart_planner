@@ -1,8 +1,20 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+// Allowed origins for CORS (production domains)
+const ALLOWED_ORIGINS = [
+  'https://mandala-goal-planner.vercel.app',
+  'https://mandala.kevinthemaker.com',
+  'http://localhost:5173', // Development
+  'http://localhost:3000',
+]
+
+function getCorsHeaders(origin: string | null): Record<string, string> {
+  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  }
 }
 
 interface ChatRequest {
@@ -28,6 +40,59 @@ const TEMPERATURES = {
   generateGoalSuggestion: 0.7, // Balanced creativity and coherence
   generateReport: 0.5,         // More focused and analytical
   generateRecommendations: 0.6 // Balanced for diverse yet relevant suggestions
+}
+
+// Rate limiting configuration
+const RATE_LIMIT = {
+  maxRequests: 20,  // Maximum requests per window
+  windowMs: 60000,  // 1 minute window
+}
+
+// In-memory rate limit store (resets on function cold start)
+const rateLimitStore = new Map<string, number[]>()
+
+/**
+ * Check if request should be rate limited
+ * Returns true if request is allowed, false if rate limited
+ */
+function checkRateLimit(clientId: string): { allowed: boolean; remaining: number; resetIn: number } {
+  const now = Date.now()
+  const windowStart = now - RATE_LIMIT.windowMs
+  
+  // Get existing timestamps and filter to current window
+  const timestamps = (rateLimitStore.get(clientId) || []).filter(t => t > windowStart)
+  
+  if (timestamps.length >= RATE_LIMIT.maxRequests) {
+    const oldestTimestamp = timestamps[0]
+    const resetIn = Math.ceil((oldestTimestamp + RATE_LIMIT.windowMs - now) / 1000)
+    return { 
+      allowed: false, 
+      remaining: 0, 
+      resetIn 
+    }
+  }
+  
+  // Add current timestamp and update store
+  timestamps.push(now)
+  rateLimitStore.set(clientId, timestamps)
+  
+  // Clean up old entries periodically (every 100 requests)
+  if (rateLimitStore.size > 100) {
+    for (const [key, times] of rateLimitStore.entries()) {
+      const validTimes = times.filter(t => t > windowStart)
+      if (validTimes.length === 0) {
+        rateLimitStore.delete(key)
+      } else {
+        rateLimitStore.set(key, validTimes)
+      }
+    }
+  }
+  
+  return { 
+    allowed: true, 
+    remaining: RATE_LIMIT.maxRequests - timestamps.length,
+    resetIn: Math.ceil(RATE_LIMIT.windowMs / 1000)
+  }
 }
 
 async function callOpenRouter(
@@ -103,12 +168,53 @@ async function callOpenRouter(
 }
 
 serve(async (req) => {
+  const origin = req.headers.get('origin')
+  const corsHeaders = getCorsHeaders(origin)
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
+    // Validate API key from request header
+    const requestApiKey = req.headers.get('apikey')
+    const expectedAnonKey = Deno.env.get('SUPABASE_ANON_KEY')
+    
+    if (!requestApiKey || requestApiKey !== expectedAnonKey) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized: Invalid API key' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Rate limiting - use client IP or fallback to API key hash
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() 
+      || req.headers.get('x-real-ip') 
+      || 'anonymous'
+    const clientId = `${clientIp}`
+    
+    const rateLimit = checkRateLimit(clientId)
+    if (!rateLimit.allowed) {
+      return new Response(
+        JSON.stringify({ 
+          error: `Rate limit exceeded. Please wait ${rateLimit.resetIn} seconds before trying again.`,
+          retryAfter: rateLimit.resetIn
+        }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'Retry-After': String(rateLimit.resetIn),
+            'X-RateLimit-Limit': String(RATE_LIMIT.maxRequests),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': String(rateLimit.resetIn)
+          } 
+        }
+      )
+    }
+
     const apiKey = Deno.env.get('OPENROUTER_API_KEY')
     if (!apiKey) {
       throw new Error('OPENROUTER_API_KEY not configured')

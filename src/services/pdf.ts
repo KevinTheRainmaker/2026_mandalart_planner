@@ -10,6 +10,19 @@ const A4_WIDTH_PX = 794
 const A4_HEIGHT_PX = 1123
 
 /**
+ * Escape HTML to prevent XSS attacks
+ */
+function escapeHtml(text: string): string {
+  if (!text) return ''
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+
+/**
  * Generate designed Mandala PDF by capturing the React MandalaPreview component
  * This ensures the PDF output matches the preview exactly
  */
@@ -105,7 +118,7 @@ export async function generateReportPDF(
     container.style.backgroundColor = 'white'
     container.style.fontFamily = 'system-ui, -apple-system, "Segoe UI", "Malgun Gothic", sans-serif'
 
-    // Build HTML content
+    // Build HTML content with escaped AI-generated text
     container.innerHTML = `
       <div style="color: #1f2937;">
         <!-- Title -->
@@ -122,7 +135,7 @@ export async function generateReportPDF(
             1. 회고 요약
           </h2>
           <p style="font-size: 13px; line-height: 1.8; color: #374151; white-space: pre-wrap;">
-            ${aiSummary.reflection_summary || '회고 요약이 없습니다.'}
+            ${escapeHtml(aiSummary.reflection_summary || '회고 요약이 없습니다.')}
           </p>
         </div>
 
@@ -132,7 +145,7 @@ export async function generateReportPDF(
             2. 목표 구조 분석
           </h2>
           <p style="font-size: 13px; line-height: 1.8; color: #374151; white-space: pre-wrap;">
-            ${aiSummary.goal_analysis || '목표 분석이 없습니다.'}
+            ${escapeHtml(aiSummary.goal_analysis || '목표 분석이 없습니다.')}
           </p>
         </div>
 
@@ -144,7 +157,7 @@ export async function generateReportPDF(
           <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
             ${(aiSummary.keywords || []).map(kw => `
               <span style="background-color: #dbeafe; color: #1e40af; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;">
-                ${kw}
+                ${escapeHtml(kw)}
               </span>
             `).join('')}
           </div>
@@ -156,7 +169,7 @@ export async function generateReportPDF(
             4. 통합 인사이트
           </h2>
           <p style="font-size: 13px; line-height: 1.8; color: #374151; white-space: pre-wrap;">
-            ${aiSummary.insights || '인사이트가 없습니다.'}
+            ${escapeHtml(aiSummary.insights || '인사이트가 없습니다.')}
           </p>
         </div>
       </div>
