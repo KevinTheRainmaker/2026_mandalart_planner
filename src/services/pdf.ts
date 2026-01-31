@@ -318,7 +318,7 @@ export async function generateMandalaPDF(
                 line-height: ${lineHeightPx}px;
                 word-break: keep-all;
                 overflow-wrap: break-word;
-              "><span style="display: inline-block; transform: translateY(-3px);">${escapeHtml(cellContent)}</span></td></tr></table>
+              "><span style="display: inline-block; transform: translateY(-3.5px);">${escapeHtml(cellContent)}</span></td></tr></table>
             `
           }
         }
