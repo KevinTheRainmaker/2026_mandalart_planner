@@ -137,9 +137,9 @@ export function MandalaPreview({ mandala, colorTheme = 'pink' }: MandalaPreviewP
   }, [centerGoal, subGoals, actionPlans, colors])
 
   return (
-    <div className="w-full h-full overflow-x-auto">
+    <div className="w-full overflow-x-auto">
       <div 
-        className="min-w-[600px] h-full flex flex-col gap-3 p-5 rounded-lg"
+        className="min-w-[600px] flex flex-col gap-3 p-5 rounded-lg"
         style={{ 
           backgroundColor: colors.background,
           fontFamily: 'system-ui, -apple-system, "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif',
