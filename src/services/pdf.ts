@@ -297,7 +297,7 @@ export async function generateMandalaPDF(
               fontWeight = "500"
             }
 
-            const lineHeightPx = Math.ceil(fontSize * 1.45)
+            const lineHeightPx = Math.ceil(fontSize * 1.25)
 
             gridHTML += `
               <div style="
@@ -306,23 +306,19 @@ export async function generateMandalaPDF(
                 align-items: center;
                 justify-content: center;
                 text-align: center;
-                padding: 2px;
+                padding: 3px 2px;
                 background-color: ${cellBg};
                 box-sizing: border-box;
                 color: ${colors.text};
               ">
-                <div style="
-                  width: 100%;
-                  height: 100%;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
+                <span style="
                   font-size: ${fontSize}px;
                   font-weight: ${fontWeight};
                   line-height: ${lineHeightPx}px;
                   word-break: keep-all;
                   overflow-wrap: break-word;
-                ">${escapeHtml(cellContent)}</div>
+                  display: block;
+                ">${escapeHtml(cellContent)}</span>
               </div>
             `
           }

@@ -225,12 +225,12 @@ export function MandalaPreview({ mandala, colorTheme = 'pink' }: MandalaPreviewP
                     fontSize: `${cell.fontSize}px`,
                     fontWeight: cell.fontWeight,
                     border: `1px solid ${colors.gridBorder}`,
-                    lineHeight: `${Math.ceil(cell.fontSize * 1.45)}px`,
+                    lineHeight: `${Math.ceil(cell.fontSize * 1.25)}px`,
                   }}
                 >
-                  <div className="w-full h-full flex items-center justify-center break-keep">
+                  <span className="break-keep">
                     {cell.content}
-                  </div>
+                  </span>
                 </div>
               ))}
             </div>
