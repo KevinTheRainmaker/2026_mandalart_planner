@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { PencilSimple, ChartBar, ArrowClockwise } from '@phosphor-icons/react'
+import { PencilSimple, ChartBar, ArrowClockwise, X } from '@phosphor-icons/react'
 import { Container, Header } from '@/components/layout'
 import { MandalaPreview } from '@/components/mandala'
 import { Button, Loading } from '@/components/common'
@@ -49,6 +49,8 @@ export function Day13() {
   // Editable name and commitment
   const [editableName, setEditableName] = useState(mandala?.name || '')
   const [editableCommitment, setEditableCommitment] = useState(mandala?.commitment || '')
+  const [editableKeywords, setEditableKeywords] = useState<string[]>(mandala?.ai_summary?.keywords || [])
+  const [newKeywordInput, setNewKeywordInput] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const { setMandala } = useMandalaStore()
 
@@ -367,24 +369,85 @@ export function Day13() {
                 />
               </div>
 
-              {/* Keywords Display */}
-              {mandala.ai_summary?.keywords && mandala.ai_summary.keywords.length > 0 && (
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    핵심 키워드
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {mandala.ai_summary.keywords.map((keyword, index) => (
-                      <span
-                        key={index}
-                        className="bg-primary-100 text-primary-800 px-3 py-1 rounded-full text-sm font-medium"
+              {/* Keywords Edit */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  핵심 키워드 {isSaving && <span className="text-xs text-gray-500">(저장 중...)</span>}
+                </label>
+                {/* Existing Keywords */}
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {editableKeywords.map((keyword, index) => (
+                    <span
+                      key={index}
+                      className="bg-primary-100 text-primary-800 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1"
+                    >
+                      {keyword}
+                      <button
+                        onClick={async () => {
+                          const newKeywords = editableKeywords.filter((_, i) => i !== index)
+                          setEditableKeywords(newKeywords)
+                          // Save to database
+                          if (mandala?.id && mandala.ai_summary) {
+                            setIsSaving(true)
+                            try {
+                              const updatedSummary = { ...mandala.ai_summary, keywords: newKeywords }
+                              const updated = await updateMandalaApi(mandala.id, { ai_summary: updatedSummary })
+                              if (updated) setMandala(updated)
+                            } catch (error) {
+                              console.error('Failed to delete keyword:', error)
+                              setEditableKeywords(mandala.ai_summary.keywords || [])
+                            } finally {
+                              setIsSaving(false)
+                            }
+                          }
+                        }}
+                        className="text-primary-600 hover:text-primary-800 hover:bg-primary-200 rounded-full p-0.5"
+                        title="삭제"
                       >
-                        {keyword}
-                      </span>
-                    ))}
-                  </div>
+                        <X size={12} weight="bold" />
+                      </button>
+                    </span>
+                  ))}
                 </div>
-              )}
+                {/* Add New Keywords */}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newKeywordInput}
+                    onChange={(e) => setNewKeywordInput(e.target.value)}
+                    onKeyDown={async (e) => {
+                      if (e.key === 'Enter' && newKeywordInput.trim()) {
+                        e.preventDefault()
+                        const newKeywords = newKeywordInput
+                          .split(',')
+                          .map(k => k.trim())
+                          .filter(k => k && !editableKeywords.includes(k))
+                        if (newKeywords.length > 0) {
+                          const allKeywords = [...editableKeywords, ...newKeywords]
+                          setEditableKeywords(allKeywords)
+                          setNewKeywordInput('')
+                          // Save to database
+                          if (mandala?.id && mandala.ai_summary) {
+                            setIsSaving(true)
+                            try {
+                              const updatedSummary = { ...mandala.ai_summary, keywords: allKeywords }
+                              const updated = await updateMandalaApi(mandala.id, { ai_summary: updatedSummary })
+                              if (updated) setMandala(updated)
+                            } catch (error) {
+                              console.error('Failed to add keywords:', error)
+                            } finally {
+                              setIsSaving(false)
+                            }
+                          }
+                        }
+                      }
+                    }}
+                    placeholder="키워드 입력 후 Enter (쉼표로 여러 개 추가 가능)"
+                    className="flex-1 px-3 py-1.5 text-sm border-2 border-gray-300 rounded-lg focus:border-primary-500 focus:outline-none disabled:bg-gray-100"
+                    disabled={isSaving}
+                  />
+                </div>
+              </div>
 
               {/* Commitment Input */}
               <div className="mb-6">
@@ -418,7 +481,7 @@ export function Day13() {
                   실제 PDF에 표시될 내용입니다. 이름과 다짐을 입력하면 미리보기에 반영됩니다.
                 </p>
                 <div className="border border-gray-200 rounded-lg overflow-hidden shadow-inner bg-gray-100 p-2">
-                  <MandalaPreview mandala={{...mandala, name: editableName, commitment: editableCommitment}} />
+                  <MandalaPreview mandala={{...mandala, name: editableName, commitment: editableCommitment, ai_summary: mandala.ai_summary ? {...mandala.ai_summary, keywords: editableKeywords} : null}} />
                 </div>
               </div>
             </div>
