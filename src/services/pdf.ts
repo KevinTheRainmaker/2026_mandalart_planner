@@ -188,12 +188,12 @@ export async function generateMandalaPDF(
     const getFontSize = (text: string, baseSize: number): number => {
       const length = text?.length ?? 0
       if (length <= 4) return baseSize
-      if (length <= 8) return Math.max(baseSize - 1, 7)
-      if (length <= 12) return Math.max(baseSize - 2, 7)
-      if (length <= 18) return Math.max(baseSize - 3, 6)
-      if (length <= 25) return Math.max(baseSize - 4, 6)
-      if (length <= 35) return Math.max(baseSize - 5, 5)
-      return Math.max(baseSize - 6, 5)
+      if (length <= 8) return Math.max(baseSize - 2, 12)
+      if (length <= 12) return Math.max(baseSize - 4, 11)
+      if (length <= 18) return Math.max(baseSize - 6, 10)
+      if (length <= 25) return Math.max(baseSize - 8, 9)
+      if (length <= 35) return Math.max(baseSize - 10, 8)
+      return Math.max(baseSize - 12, 7)
     }
 
     // Create HTML template - Vertical A4 (210×297mm → ~794×1123px at 96dpi)
@@ -214,7 +214,7 @@ export async function generateMandalaPDF(
     ;(container.style as any).webkitFontSmoothing = "antialiased"
 
     // Build grid HTML
-    const cellSize = 90 // Each cell in px (increased from 75 for better readability)
+    const cellSize = 85 // Each cell in px (increased from 75 for better readability)
     const sectionGap = 3
 
     let gridHTML = ""
@@ -279,21 +279,21 @@ export async function generateMandalaPDF(
             // Determine content and styling
             if (isCenter && isCenterCell) {
               cellContent = centerGoal
-              fontSize = getFontSize(centerGoal, 13)
+              fontSize = getFontSize(centerGoal, 22)
               fontWeight = "800"
             } else if (isCenter && !isCenterCell) {
               const subGoalIdx = cellIndex < 4 ? cellIndex : cellIndex - 1
               cellContent = subGoals[subGoalIdx] || ""
-              fontSize = getFontSize(cellContent, 10)
+              fontSize = getFontSize(cellContent, 18)
               fontWeight = "700"
             } else if (!isCenter && isCenterCell) {
               cellContent = subGoal
-              fontSize = getFontSize(subGoal, 11)
+              fontSize = getFontSize(subGoal, 18)
               fontWeight = "700"
             } else if (!isCenter) {
               const planIndex = cellIndex < 4 ? cellIndex : cellIndex - 1
               cellContent = plans[planIndex] || ""
-              fontSize = getFontSize(cellContent, 9)
+              fontSize = getFontSize(cellContent, 16)
               fontWeight = "500"
             }
 
