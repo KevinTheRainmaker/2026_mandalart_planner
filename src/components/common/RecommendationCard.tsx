@@ -134,20 +134,36 @@ export function RecommendationCard({
           <Sparkle size={20} weight="fill" className="text-purple-600" />
           <span className="font-medium text-purple-900">{title}</span>
         </div>
-        <Button
-          onClick={handleGenerate}
+      </div>
+
+      {/* Custom prompt input - always visible for re-generation */}
+      <div className="space-y-2">
+        <input
+          type="text"
+          value={customPrompt}
+          onChange={(e) => setCustomPrompt(e.target.value.slice(0, 50))}
+          placeholder="추천 방향을 입력하세요 (선택사항)"
+          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white"
+          maxLength={50}
           disabled={isLoading}
-          size="sm"
-          variant="outline"
-          className="flex items-center gap-1"
-        >
-          {isLoading ? (
-            <Loading size="sm" />
-          ) : (
-            <ArrowClockwise size={14} weight="bold" />
-          )}
-          다시 추천
-        </Button>
+        />
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-gray-400">{customPrompt.length}/50자</span>
+          <Button
+            onClick={handleGenerate}
+            disabled={isLoading}
+            size="sm"
+            variant="outline"
+            className="flex items-center gap-1"
+          >
+            {isLoading ? (
+              <Loading size="sm" />
+            ) : (
+              <ArrowClockwise size={14} weight="bold" />
+            )}
+            다시 추천
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
