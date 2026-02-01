@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 // Allowed origins for CORS (production domains)
 const ALLOWED_ORIGINS = [
-  'https://mandala-goal-planner.vercel.app',
+  'https://mandalart-2026.vercel.app',
   'https://mandala.kevinthemaker.com',
   'http://localhost:5173', // Development
   'http://localhost:3000',
@@ -58,24 +58,24 @@ const rateLimitStore = new Map<string, number[]>()
 function checkRateLimit(clientId: string): { allowed: boolean; remaining: number; resetIn: number } {
   const now = Date.now()
   const windowStart = now - RATE_LIMIT.windowMs
-  
+
   // Get existing timestamps and filter to current window
   const timestamps = (rateLimitStore.get(clientId) || []).filter(t => t > windowStart)
-  
+
   if (timestamps.length >= RATE_LIMIT.maxRequests) {
     const oldestTimestamp = timestamps[0]
     const resetIn = Math.ceil((oldestTimestamp + RATE_LIMIT.windowMs - now) / 1000)
-    return { 
-      allowed: false, 
-      remaining: 0, 
-      resetIn 
+    return {
+      allowed: false,
+      remaining: 0,
+      resetIn
     }
   }
-  
+
   // Add current timestamp and update store
   timestamps.push(now)
   rateLimitStore.set(clientId, timestamps)
-  
+
   // Clean up old entries periodically (every 100 requests)
   if (rateLimitStore.size > 100) {
     for (const [key, times] of rateLimitStore.entries()) {
@@ -87,9 +87,9 @@ function checkRateLimit(clientId: string): { allowed: boolean; remaining: number
       }
     }
   }
-  
-  return { 
-    allowed: true, 
+
+  return {
+    allowed: true,
     remaining: RATE_LIMIT.maxRequests - timestamps.length,
     resetIn: Math.ceil(RATE_LIMIT.windowMs / 1000)
   }
@@ -180,7 +180,7 @@ serve(async (req) => {
     // Validate API key from request header
     const requestApiKey = req.headers.get('apikey')
     const expectedAnonKey = Deno.env.get('SUPABASE_ANON_KEY')
-    
+
     if (!requestApiKey || requestApiKey !== expectedAnonKey) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized: Invalid API key' }),
@@ -189,28 +189,28 @@ serve(async (req) => {
     }
 
     // Rate limiting - use client IP or fallback to API key hash
-    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() 
-      || req.headers.get('x-real-ip') 
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+      || req.headers.get('x-real-ip')
       || 'anonymous'
     const clientId = `${clientIp}`
-    
+
     const rateLimit = checkRateLimit(clientId)
     if (!rateLimit.allowed) {
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: `Rate limit exceeded. Please wait ${rateLimit.resetIn} seconds before trying again.`,
           retryAfter: rateLimit.resetIn
         }),
-        { 
-          status: 429, 
-          headers: { 
-            ...corsHeaders, 
+        {
+          status: 429,
+          headers: {
+            ...corsHeaders,
             'Content-Type': 'application/json',
             'Retry-After': String(rateLimit.resetIn),
             'X-RateLimit-Limit': String(RATE_LIMIT.maxRequests),
             'X-RateLimit-Remaining': '0',
             'X-RateLimit-Reset': String(rateLimit.resetIn)
-          } 
+          }
         }
       )
     }
@@ -270,7 +270,7 @@ async function handleGenerateQuestion(
     .map((qa, i) => `질문 ${i + 1}: ${qa.question}\n답변: ${qa.answer}`)
     .join('\n\n')
 
-  const firstQuestionInstruction = isFirstQuestion 
+  const firstQuestionInstruction = isFirstQuestion
     ? `첫 질문이니 친근하게 시작하면서, 총 ${totalQuestions}개의 질문을 드릴 예정이라고 자연스럽게 안내해주세요.`
     : '이전 답변 내용을 자연스럽게 연결하거나 언급해주세요.'
 
@@ -416,8 +416,8 @@ ${(mandala.sub_goals as string[])?.map((g, i) => `${i + 1}. ${g}`).join('\n')}
 
 ## 액션 플랜
 ${Object.entries(mandala.action_plans as Record<string, string[]>)
-  .map(([key, plans]) => `목표 ${parseInt(key) + 1}: ${plans.join(', ')}`)
-  .join('\n')}
+      .map(([key, plans]) => `목표 ${parseInt(key) + 1}: ${plans.join(', ')}`)
+      .join('\n')}
 
 ## 분석 요청
 다음 기준에 따라 만다라트 계획을 분석하세요:
@@ -469,16 +469,16 @@ async function handleGenerateRecommendations(
     customPrompt?: string
   }
 
-  const existingItemsText = existingItems?.length 
+  const existingItemsText = existingItems?.length
     ? `\n\n${existingItems.map((item, i) => `${i + 1}. ${item}`).join('\n')}`
     : ''
 
   // 다른 하위 목표의 액션플랜 텍스트 생성
   const otherPlansText = otherSubGoalsPlans?.length
     ? otherSubGoalsPlans
-        .filter(item => item.plans && item.plans.length > 0)
-        .map(item => `[${item.subGoal}]: ${item.plans.join(', ')}`)
-        .join('\n')
+      .filter(item => item.plans && item.plans.length > 0)
+      .map(item => `[${item.subGoal}]: ${item.plans.join(', ')}`)
+      .join('\n')
     : ''
 
   let prompt: string
