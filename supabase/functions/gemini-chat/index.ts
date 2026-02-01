@@ -177,16 +177,9 @@ serve(async (req) => {
   }
 
   try {
-    // Validate API key from request header
-    const requestApiKey = req.headers.get('apikey')
-    const expectedAnonKey = Deno.env.get('SUPABASE_ANON_KEY')
-
-    if (!requestApiKey || requestApiKey !== expectedAnonKey) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized: Invalid API key' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
+    // Note: Edge Functions are protected by Supabase infrastructure
+    // The 'apikey' header is already validated by Supabase before reaching this function
+    // Additional rate limiting is applied below
 
     // Rate limiting - use client IP or fallback to API key hash
     const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
