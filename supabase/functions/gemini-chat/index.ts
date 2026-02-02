@@ -1,20 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
-// Allowed origins for CORS (production domains)
-const ALLOWED_ORIGINS = [
-  'https://mandalart-2026.vercel.app',
-  'https://mandala.kevinthemaker.com',
-  'http://localhost:5173', // Development
-  'http://localhost:3000',
-]
-
-function getCorsHeaders(origin: string | null): Record<string, string> {
-  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]
-  return {
-    'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  }
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
 interface ChatRequest {
@@ -40,59 +28,6 @@ const TEMPERATURES = {
   generateGoalSuggestion: 0.7, // Balanced creativity and coherence
   generateReport: 0.5,         // More focused and analytical
   generateRecommendations: 0.6 // Balanced for diverse yet relevant suggestions
-}
-
-// Rate limiting configuration
-const RATE_LIMIT = {
-  maxRequests: 20,  // Maximum requests per window
-  windowMs: 60000,  // 1 minute window
-}
-
-// In-memory rate limit store (resets on function cold start)
-const rateLimitStore = new Map<string, number[]>()
-
-/**
- * Check if request should be rate limited
- * Returns true if request is allowed, false if rate limited
- */
-function checkRateLimit(clientId: string): { allowed: boolean; remaining: number; resetIn: number } {
-  const now = Date.now()
-  const windowStart = now - RATE_LIMIT.windowMs
-
-  // Get existing timestamps and filter to current window
-  const timestamps = (rateLimitStore.get(clientId) || []).filter(t => t > windowStart)
-
-  if (timestamps.length >= RATE_LIMIT.maxRequests) {
-    const oldestTimestamp = timestamps[0]
-    const resetIn = Math.ceil((oldestTimestamp + RATE_LIMIT.windowMs - now) / 1000)
-    return {
-      allowed: false,
-      remaining: 0,
-      resetIn
-    }
-  }
-
-  // Add current timestamp and update store
-  timestamps.push(now)
-  rateLimitStore.set(clientId, timestamps)
-
-  // Clean up old entries periodically (every 100 requests)
-  if (rateLimitStore.size > 100) {
-    for (const [key, times] of rateLimitStore.entries()) {
-      const validTimes = times.filter(t => t > windowStart)
-      if (validTimes.length === 0) {
-        rateLimitStore.delete(key)
-      } else {
-        rateLimitStore.set(key, validTimes)
-      }
-    }
-  }
-
-  return {
-    allowed: true,
-    remaining: RATE_LIMIT.maxRequests - timestamps.length,
-    resetIn: Math.ceil(RATE_LIMIT.windowMs / 1000)
-  }
 }
 
 async function callOpenRouter(
@@ -168,46 +103,12 @@ async function callOpenRouter(
 }
 
 serve(async (req) => {
-  const origin = req.headers.get('origin')
-  const corsHeaders = getCorsHeaders(origin)
-
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    // Note: Edge Functions are protected by Supabase infrastructure
-    // The 'apikey' header is already validated by Supabase before reaching this function
-    // Additional rate limiting is applied below
-
-    // Rate limiting - use client IP or fallback to API key hash
-    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-      || req.headers.get('x-real-ip')
-      || 'anonymous'
-    const clientId = `${clientIp}`
-
-    const rateLimit = checkRateLimit(clientId)
-    if (!rateLimit.allowed) {
-      return new Response(
-        JSON.stringify({
-          error: `Rate limit exceeded. Please wait ${rateLimit.resetIn} seconds before trying again.`,
-          retryAfter: rateLimit.resetIn
-        }),
-        {
-          status: 429,
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'application/json',
-            'Retry-After': String(rateLimit.resetIn),
-            'X-RateLimit-Limit': String(RATE_LIMIT.maxRequests),
-            'X-RateLimit-Remaining': '0',
-            'X-RateLimit-Reset': String(rateLimit.resetIn)
-          }
-        }
-      )
-    }
-
     const apiKey = Deno.env.get('OPENROUTER_API_KEY')
     if (!apiKey) {
       throw new Error('OPENROUTER_API_KEY not configured')
@@ -263,7 +164,7 @@ async function handleGenerateQuestion(
     .map((qa, i) => `질문 ${i + 1}: ${qa.question}\n답변: ${qa.answer}`)
     .join('\n\n')
 
-  const firstQuestionInstruction = isFirstQuestion
+  const firstQuestionInstruction = isFirstQuestion 
     ? `첫 질문이니 친근하게 시작하면서, 총 ${totalQuestions}개의 질문을 드릴 예정이라고 자연스럽게 안내해주세요.`
     : '이전 답변 내용을 자연스럽게 연결하거나 언급해주세요.'
 
@@ -409,8 +310,8 @@ ${(mandala.sub_goals as string[])?.map((g, i) => `${i + 1}. ${g}`).join('\n')}
 
 ## 액션 플랜
 ${Object.entries(mandala.action_plans as Record<string, string[]>)
-      .map(([key, plans]) => `목표 ${parseInt(key) + 1}: ${plans.join(', ')}`)
-      .join('\n')}
+  .map(([key, plans]) => `목표 ${parseInt(key) + 1}: ${plans.join(', ')}`)
+  .join('\n')}
 
 ## 분석 요청
 다음 기준에 따라 만다라트 계획을 분석하세요:
@@ -462,16 +363,16 @@ async function handleGenerateRecommendations(
     customPrompt?: string
   }
 
-  const existingItemsText = existingItems?.length
+  const existingItemsText = existingItems?.length 
     ? `\n\n${existingItems.map((item, i) => `${i + 1}. ${item}`).join('\n')}`
     : ''
 
   // 다른 하위 목표의 액션플랜 텍스트 생성
   const otherPlansText = otherSubGoalsPlans?.length
     ? otherSubGoalsPlans
-      .filter(item => item.plans && item.plans.length > 0)
-      .map(item => `[${item.subGoal}]: ${item.plans.join(', ')}`)
-      .join('\n')
+        .filter(item => item.plans && item.plans.length > 0)
+        .map(item => `[${item.subGoal}]: ${item.plans.join(', ')}`)
+        .join('\n')
     : ''
 
   let prompt: string
@@ -613,3 +514,4 @@ ${otherPlansText}
     return { recommendations: [] }
   }
 }
+

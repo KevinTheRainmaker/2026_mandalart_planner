@@ -3,6 +3,8 @@
  * Generates AI-powered recommendations for sub-goals and action plans
  */
 
+import { getPositiveFeedbackExamples, type FeedbackExample } from './feedbackService'
+
 export interface Recommendation {
   text: string
   reason: string
@@ -28,6 +30,7 @@ async function callRecommendationFunction(
     existingItems?: string[]
     otherSubGoalsPlans?: OtherSubGoalPlans[]
     customPrompt?: string
+    positiveExamples?: FeedbackExample[]
   }
 ): Promise<RecommendationResponse> {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -60,11 +63,21 @@ export async function generateSubGoalRecommendations(
   customPrompt?: string
 ): Promise<Recommendation[]> {
   try {
+    // Fetch positive examples for few-shot learning (deduplicated)
+    const allExamples = await getPositiveFeedbackExamples('subGoal', 10)
+    const seenTexts = new Set<string>()
+    const positiveExamples = allExamples.filter(ex => {
+      if (seenTexts.has(ex.text)) return false
+      seenTexts.add(ex.text)
+      return true
+    }).slice(0, 5)
+
     const result = await callRecommendationFunction({
       type: 'subGoal',
       centerGoal,
       existingItems: existingSubGoals.filter(Boolean),
       customPrompt,
+      positiveExamples,
     })
     return result.recommendations || []
   } catch (error) {
@@ -89,6 +102,15 @@ export async function generateActionPlanRecommendations(
   customPrompt?: string
 ): Promise<Recommendation[]> {
   try {
+    // Fetch positive examples for few-shot learning (deduplicated)
+    const allExamples = await getPositiveFeedbackExamples('actionPlan', 10)
+    const seenTexts = new Set<string>()
+    const positiveExamples = allExamples.filter(ex => {
+      if (seenTexts.has(ex.text)) return false
+      seenTexts.add(ex.text)
+      return true
+    }).slice(0, 5)
+
     const result = await callRecommendationFunction({
       type: 'actionPlan',
       centerGoal,
@@ -96,6 +118,7 @@ export async function generateActionPlanRecommendations(
       existingItems: existingActionPlans.filter(Boolean),
       otherSubGoalsPlans: otherSubGoalsPlans.filter(item => item.plans && item.plans.length > 0),
       customPrompt,
+      positiveExamples,
     })
     return result.recommendations || []
   } catch (error) {
