@@ -164,7 +164,7 @@ async function handleGenerateQuestion(
     .map((qa, i) => `질문 ${i + 1}: ${qa.question}\n답변: ${qa.answer}`)
     .join('\n\n')
 
-  const firstQuestionInstruction = isFirstQuestion 
+  const firstQuestionInstruction = isFirstQuestion
     ? `첫 질문이니 친근하게 시작하면서, 총 ${totalQuestions}개의 질문을 드릴 예정이라고 자연스럽게 안내해주세요.`
     : '이전 답변 내용을 자연스럽게 연결하거나 언급해주세요.'
 
@@ -310,8 +310,8 @@ ${(mandala.sub_goals as string[])?.map((g, i) => `${i + 1}. ${g}`).join('\n')}
 
 ## 액션 플랜
 ${Object.entries(mandala.action_plans as Record<string, string[]>)
-  .map(([key, plans]) => `목표 ${parseInt(key) + 1}: ${plans.join(', ')}`)
-  .join('\n')}
+      .map(([key, plans]) => `목표 ${parseInt(key) + 1}: ${plans.join(', ')}`)
+      .join('\n')}
 
 ## 분석 요청
 다음 기준에 따라 만다라트 계획을 분석하세요:
@@ -363,16 +363,16 @@ async function handleGenerateRecommendations(
     customPrompt?: string
   }
 
-  const existingItemsText = existingItems?.length 
+  const existingItemsText = existingItems?.length
     ? `\n\n${existingItems.map((item, i) => `${i + 1}. ${item}`).join('\n')}`
     : ''
 
   // 다른 하위 목표의 액션플랜 텍스트 생성
   const otherPlansText = otherSubGoalsPlans?.length
     ? otherSubGoalsPlans
-        .filter(item => item.plans && item.plans.length > 0)
-        .map(item => `[${item.subGoal}]: ${item.plans.join(', ')}`)
-        .join('\n')
+      .filter(item => item.plans && item.plans.length > 0)
+      .map(item => `[${item.subGoal}]: ${item.plans.join(', ')}`)
+      .join('\n')
     : ''
 
   let prompt: string
