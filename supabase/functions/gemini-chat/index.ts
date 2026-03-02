@@ -333,7 +333,7 @@ ${Object.entries(mandala.action_plans as Record<string, string[]>)
   "insights": "유지하면 좋은 설계 요소와, 필요할 경우에만 고려해볼 수 있는 가벼운 개선 방향 제안 (3-5문장)"
 }`
 
-  const text = await callOpenRouter(apiKey, MODELS.gpt5, prompt, TEMPERATURES.generateReport)
+  const text = await callOpenRouter(apiKey, MODELS.pro, prompt, TEMPERATURES.generateReport)
 
   const jsonMatch = text.match(/\{[\s\S]*\}/)
   if (!jsonMatch) {
