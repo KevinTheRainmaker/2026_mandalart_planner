@@ -75,7 +75,7 @@ export interface MandalaCreate {
 }
 
 export interface MandalaUpdate {
-  reflection_theme?: ReflectionThemeKey
+  reflection_theme?: ReflectionThemeKey | null
   reflection_answers?: ReflectionAnswers
   reflection_notes?: string
   center_goal?: string

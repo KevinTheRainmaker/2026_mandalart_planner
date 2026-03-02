@@ -67,8 +67,8 @@ export function AuthCallback() {
             })
 
             console.log('Mandala created:', newMandala)
-            console.log('Redirecting to step 1')
-            redirectPath = '/step/1'
+            console.log('Redirecting to dashboard (new user)')
+            redirectPath = '/dashboard'
           }
 
           // Navigate directly in this tab
