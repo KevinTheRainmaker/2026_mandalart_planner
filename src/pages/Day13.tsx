@@ -1,9 +1,8 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { PencilSimple, ChartBar, ArrowClockwise, X, Monitor, File } from '@phosphor-icons/react'
+import { PencilSimple, ChartBar, ArrowClockwise, X } from '@phosphor-icons/react'
 import { Container, Header } from '@/components/layout'
 import { MandalaPreview } from '@/components/mandala'
-import type { PdfOrientation } from '@/components/mandala'
 import { Button, Loading } from '@/components/common'
 import { useAuth, useMandala } from '@/hooks'
 import { useMandalaStore } from '@/store'
@@ -55,7 +54,6 @@ export function Day13() {
   const [newKeywordInput, setNewKeywordInput] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [selectedTheme, setSelectedTheme] = useState<ColorTheme>('pink')
-  const [selectedOrientation, setSelectedOrientation] = useState<PdfOrientation>('portrait')
   const { setMandala } = useMandalaStore()
 
   // Sync editable states with mandala data
@@ -213,7 +211,7 @@ export function Day13() {
       })
 
       const today = new Date().toISOString().split('T')[0]
-      await generateMandalaPDF(null, latestMandala, `mandala-chart-${today}.pdf`, selectedTheme, selectedOrientation)
+      await generateMandalaPDF(null, latestMandala, `mandala-chart-${today}.pdf`, selectedTheme)
     } catch (error) {
       console.error('Failed to download Mandala PDF:', error)
       alert('PDF 다운로드에 실패했습니다. 다시 시도해주세요.')
@@ -507,35 +505,6 @@ export function Day13() {
                 </div>
               </div>
 
-              {/* Orientation Selector */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  📐 방향 선택
-                </label>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setSelectedOrientation('portrait')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all ${selectedOrientation === 'portrait'
-                        ? 'border-primary-500 ring-2 ring-primary-200'
-                        : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                  >
-                    <File size={20} weight="duotone" />
-                    <span className="text-sm font-medium">세로형 (A4)</span>
-                  </button>
-                  <button
-                    onClick={() => setSelectedOrientation('landscape')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all ${selectedOrientation === 'landscape'
-                        ? 'border-primary-500 ring-2 ring-primary-200'
-                        : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                  >
-                    <Monitor size={20} weight="duotone" />
-                    <span className="text-sm font-medium">가로형 (배경화면)</span>
-                  </button>
-                </div>
-              </div>
-
               {/* Download Button */}
               <div className="flex justify-center mb-8">
                 <Button onClick={handleDownloadMandala} variant="secondary" size="lg" className="flex items-center gap-2">
@@ -555,7 +524,6 @@ export function Day13() {
                   <MandalaPreview
                     mandala={{ ...mandala, name: editableName, commitment: editableCommitment, ai_summary: mandala.ai_summary ? { ...mandala.ai_summary, keywords: editableKeywords } : null }}
                     colorTheme={selectedTheme}
-                    orientation={selectedOrientation}
                   />
                 </div>
               </div>

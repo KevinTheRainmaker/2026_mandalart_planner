@@ -2,12 +2,9 @@ import { useMemo } from 'react'
 import type { Mandala } from '@/types'
 import type { ColorTheme } from '@/constants'
 
-export type PdfOrientation = 'portrait' | 'landscape'
-
 interface MandalaPreviewProps {
   mandala: Mandala
   colorTheme?: ColorTheme
-  orientation?: PdfOrientation
 }
 
 const PALETTES = {
@@ -47,17 +44,14 @@ const PALETTES = {
 
 /**
  * Mandala PDF Preview Component
- * Renders the exact same layout as the PDF output
- * - portrait: Vertical A4
- * - landscape: Horizontal 16:9 wallpaper (left blank for desktop icons, content on right)
+ * Renders the exact same layout as the PDF output (Vertical A4)
  */
-export function MandalaPreview({ mandala, colorTheme = 'pink', orientation = 'portrait' }: MandalaPreviewProps) {
+export function MandalaPreview({ mandala, colorTheme = 'pink' }: MandalaPreviewProps) {
   const colors = PALETTES[colorTheme]
   const centerGoal = mandala.center_goal || '핵심 목표'
   const subGoals = mandala.sub_goals || []
   const actionPlans = mandala.action_plans || {}
   const keywords = mandala.ai_summary?.keywords || []
-  const isLandscape = orientation === 'landscape'
 
   // Helper function to determine font size based on text length
   const getFontSize = (text: string, baseSize: number): number => {
@@ -142,235 +136,6 @@ export function MandalaPreview({ mandala, colorTheme = 'pink', orientation = 'po
     return sections
   }, [centerGoal, subGoals, actionPlans, colors])
 
-  // Shared grid renderer
-  const renderGrid = () => (
-    <div
-      className="grid gap-1 justify-center"
-      style={{
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gridTemplateRows: 'repeat(3, 1fr)',
-      }}
-    >
-      {gridSections.map((section) => (
-        <div
-          key={section.key}
-          className="relative bg-white grid overflow-hidden rounded-lg"
-          style={{
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gridTemplateRows: 'repeat(3, 1fr)',
-            border: `2px solid ${colors.gridBorder}`,
-            aspectRatio: '1',
-          }}
-        >
-          {/* Section number */}
-          {!section.isCenter && (
-            <div
-              className="absolute top-[3px] left-[5px] text-[9px] font-semibold z-10"
-              style={{ color: colors.border }}
-            >
-              #{section.subGoalIndex + 1}
-            </div>
-          )}
-
-          {section.cells.map((cell) => (
-            <div
-              key={cell.key}
-              className="flex items-center justify-center text-center p-0.5 overflow-hidden"
-              style={{
-                backgroundColor: cell.cellBg,
-                fontSize: `${cell.fontSize}px`,
-                fontWeight: cell.fontWeight,
-                border: `1px solid ${colors.gridBorder}`,
-                lineHeight: `${Math.ceil(cell.fontSize * 1.2)}px`,
-                wordBreak: 'break-all',
-              }}
-            >
-              <span className="w-full">
-                {cell.content}
-              </span>
-            </div>
-          ))}
-        </div>
-      ))}
-    </div>
-  )
-
-  // ─── Landscape layout (for desktop wallpaper) ───
-  if (isLandscape) {
-    return (
-      <div className="w-full overflow-x-auto">
-        <div
-          style={{
-            aspectRatio: '16 / 9',
-            backgroundColor: colors.background,
-            fontFamily: 'system-ui, -apple-system, "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif',
-            color: colors.text,
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            borderRadius: '8px',
-            overflow: 'hidden',
-            position: 'relative',
-          }}
-        >
-          {/* Left blank area (~35%) for desktop icons */}
-          <div style={{ flex: '0 0 35%' }} />
-
-          {/* Info panel (~20%) — header, keywords, commitment stacked */}
-          <div
-            style={{
-              flex: '0 0 18%',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              gap: '8px',
-              padding: '16px 12px',
-              height: '80%',
-            }}
-          >
-            {/* Header */}
-            <div style={{ textAlign: 'center', marginBottom: '4px' }}>
-              <div style={{ fontSize: '20px', fontWeight: 800, color: colors.text }}>
-                2026
-              </div>
-              <div style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.05em', color: colors.border }}>
-                만다라트 차트
-              </div>
-            </div>
-
-            {/* Name & Keywords */}
-            <div
-              style={{
-                padding: '8px',
-                backgroundColor: 'white',
-                borderRadius: '10px',
-                border: `2px solid ${colors.gridBorder}`,
-              }}
-            >
-              <div style={{ fontSize: '10px', fontWeight: 800, marginBottom: '3px' }}>
-                {mandala.name || '이름'}의 KEYWORD
-              </div>
-              <div style={{ fontSize: '9px', fontWeight: 600, lineHeight: '1.4', color: colors.text }}>
-                {keywords.length > 0
-                  ? keywords.join(', ')
-                  : '키워드를 입력해주세요'}
-              </div>
-            </div>
-
-            {/* Commitment */}
-            <div
-              style={{
-                padding: '8px',
-                borderRadius: '10px',
-                textAlign: 'center',
-                backgroundColor: colors.subGoal,
-                border: `2px solid ${colors.border}`,
-              }}
-            >
-              <div style={{ fontSize: '10px', fontWeight: 700, lineHeight: '1.4' }}>
-                {mandala.commitment || '2026년 다짐을 입력해주세요!'}
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div style={{ textAlign: 'center', fontSize: '7px', marginTop: '4px', color: colors.border }}>
-              Created with 2026 만다라트 목표 설계
-            </div>
-          </div>
-
-          {/* Mandala Grid (~45%) — square, height-constrained */}
-          <div
-            style={{
-              flex: '0 0 45%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '12px 16px 12px 8px',
-              height: '100%',
-            }}
-          >
-            <div
-              style={{
-                height: '92%',
-                aspectRatio: '1',
-                maxWidth: '100%',
-              }}
-            >
-              <div
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3, 1fr)',
-                  gridTemplateRows: 'repeat(3, 1fr)',
-                  gap: '2px',
-                }}
-              >
-                {gridSections.map((section) => (
-                  <div
-                    key={section.key}
-                    style={{
-                      position: 'relative',
-                      backgroundColor: 'white',
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(3, 1fr)',
-                      gridTemplateRows: 'repeat(3, 1fr)',
-                      border: `2px solid ${colors.gridBorder}`,
-                      borderRadius: '6px',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    {/* Section number */}
-                    {!section.isCenter && (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: '2px',
-                          left: '4px',
-                          fontSize: '7px',
-                          fontWeight: 600,
-                          color: colors.border,
-                          zIndex: 10,
-                        }}
-                      >
-                        #{section.subGoalIndex + 1}
-                      </div>
-                    )}
-
-                    {section.cells.map((cell) => (
-                      <div
-                        key={cell.key}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          textAlign: 'center',
-                          padding: '1px',
-                          overflow: 'hidden',
-                          backgroundColor: cell.cellBg,
-                          fontSize: `${Math.max(cell.fontSize * 0.7, 6)}px`,
-                          fontWeight: cell.fontWeight,
-                          border: `1px solid ${colors.gridBorder}`,
-                          lineHeight: `${Math.ceil(cell.fontSize * 0.85)}px`,
-                          wordBreak: 'break-all' as const,
-                        }}
-                      >
-                        <span style={{ width: '100%' }}>
-                          {cell.content}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // ─── Portrait layout (original A4) ───
   return (
     <div className="w-full overflow-x-auto">
       <div
@@ -423,7 +188,55 @@ export function MandalaPreview({ mandala, colorTheme = 'pink', orientation = 'po
         </div>
 
         {/* Mandala Grid */}
-        {renderGrid()}
+        <div
+          className="grid gap-1 justify-center"
+          style={{
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gridTemplateRows: 'repeat(3, 1fr)',
+          }}
+        >
+          {gridSections.map((section) => (
+            <div
+              key={section.key}
+              className="relative bg-white grid overflow-hidden rounded-lg"
+              style={{
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gridTemplateRows: 'repeat(3, 1fr)',
+                border: `2px solid ${colors.gridBorder}`,
+                aspectRatio: '1',
+              }}
+            >
+              {/* Section number */}
+              {!section.isCenter && (
+                <div
+                  className="absolute top-[3px] left-[5px] text-[9px] font-semibold z-10"
+                  style={{ color: colors.border }}
+                >
+                  #{section.subGoalIndex + 1}
+                </div>
+              )}
+
+              {section.cells.map((cell) => (
+                <div
+                  key={cell.key}
+                  className="flex items-center justify-center text-center p-0.5 overflow-hidden"
+                  style={{
+                    backgroundColor: cell.cellBg,
+                    fontSize: `${cell.fontSize}px`,
+                    fontWeight: cell.fontWeight,
+                    border: `1px solid ${colors.gridBorder}`,
+                    lineHeight: `${Math.ceil(cell.fontSize * 1.2)}px`,
+                    wordBreak: 'break-all',
+                  }}
+                >
+                  <span className="w-full">
+                    {cell.content}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
 
         {/* Footer */}
         <div className="text-center text-[10px] pt-1" style={{ color: colors.border }}>
