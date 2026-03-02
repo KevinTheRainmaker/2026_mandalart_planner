@@ -207,83 +207,162 @@ export function MandalaPreview({ mandala, colorTheme = 'pink', orientation = 'po
             color: colors.text,
             display: 'flex',
             flexDirection: 'row',
+            alignItems: 'center',
             borderRadius: '8px',
+            overflow: 'hidden',
+            position: 'relative',
           }}
         >
-          {/* Left blank area (~40%) for desktop icons */}
-          <div style={{ flex: '0 0 40%', minWidth: 0 }} />
+          {/* Left blank area (~35%) for desktop icons */}
+          <div style={{ flex: '0 0 35%' }} />
 
-          {/* Right content area (~60%) */}
+          {/* Info panel (~20%) — header, keywords, commitment stacked */}
           <div
             style={{
-              flex: '0 0 60%',
+              flex: '0 0 18%',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
-              gap: '12px',
-              padding: '24px 32px 24px 0',
-              minWidth: 0,
+              gap: '8px',
+              padding: '16px 12px',
+              height: '80%',
             }}
           >
             {/* Header */}
-            <div style={{ textAlign: 'center', paddingBottom: '4px' }}>
-              <div style={{ fontSize: '22px', fontWeight: 800, color: colors.text }}>
+            <div style={{ textAlign: 'center', marginBottom: '4px' }}>
+              <div style={{ fontSize: '20px', fontWeight: 800, color: colors.text }}>
                 2026
               </div>
-              <div style={{ fontSize: '16px', fontWeight: 700, letterSpacing: '0.05em', color: colors.border }}>
+              <div style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.05em', color: colors.border }}>
                 만다라트 차트
               </div>
             </div>
 
-            {/* Keywords & Commitment */}
+            {/* Name & Keywords */}
             <div
               style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-                gap: '12px',
-                padding: '10px',
+                padding: '8px',
                 backgroundColor: 'white',
-                borderRadius: '12px',
+                borderRadius: '10px',
                 border: `2px solid ${colors.gridBorder}`,
               }}
             >
-              {/* Name & Keywords */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '13px', fontWeight: 800, marginBottom: '4px' }}>
-                  {mandala.name || '이름'}의 2026년 KEYWORD
-                </div>
-                <div style={{ fontSize: '12px', fontWeight: 700, lineHeight: '1.5' }}>
-                  {keywords.length > 0
-                    ? keywords.join(', ')
-                    : '키워드를 입력해주세요'}
-                </div>
+              <div style={{ fontSize: '10px', fontWeight: 800, marginBottom: '3px' }}>
+                {mandala.name || '이름'}의 KEYWORD
               </div>
-
-              {/* Commitment */}
-              <div
-                style={{
-                  flex: 1,
-                  minWidth: 0,
-                  padding: '8px 12px',
-                  borderRadius: '16px',
-                  textAlign: 'center',
-                  backgroundColor: colors.subGoal,
-                  border: `2px solid ${colors.border}`,
-                }}
-              >
-                <div style={{ fontSize: '13px', fontWeight: 700, lineHeight: '1.4' }}>
-                  {mandala.commitment || '2026년 다짐을 입력해주세요!'}
-                </div>
+              <div style={{ fontSize: '9px', fontWeight: 600, lineHeight: '1.4', color: colors.text }}>
+                {keywords.length > 0
+                  ? keywords.join(', ')
+                  : '키워드를 입력해주세요'}
               </div>
             </div>
 
-            {/* Mandala Grid */}
-            {renderGrid()}
+            {/* Commitment */}
+            <div
+              style={{
+                padding: '8px',
+                borderRadius: '10px',
+                textAlign: 'center',
+                backgroundColor: colors.subGoal,
+                border: `2px solid ${colors.border}`,
+              }}
+            >
+              <div style={{ fontSize: '10px', fontWeight: 700, lineHeight: '1.4' }}>
+                {mandala.commitment || '2026년 다짐을 입력해주세요!'}
+              </div>
+            </div>
 
             {/* Footer */}
-            <div style={{ textAlign: 'center', fontSize: '9px', paddingTop: '2px', color: colors.border }}>
+            <div style={{ textAlign: 'center', fontSize: '7px', marginTop: '4px', color: colors.border }}>
               Created with 2026 만다라트 목표 설계
+            </div>
+          </div>
+
+          {/* Mandala Grid (~45%) — square, height-constrained */}
+          <div
+            style={{
+              flex: '0 0 45%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '12px 16px 12px 8px',
+              height: '100%',
+            }}
+          >
+            <div
+              style={{
+                height: '92%',
+                aspectRatio: '1',
+                maxWidth: '100%',
+              }}
+            >
+              <div
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gridTemplateRows: 'repeat(3, 1fr)',
+                  gap: '2px',
+                }}
+              >
+                {gridSections.map((section) => (
+                  <div
+                    key={section.key}
+                    style={{
+                      position: 'relative',
+                      backgroundColor: 'white',
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(3, 1fr)',
+                      gridTemplateRows: 'repeat(3, 1fr)',
+                      border: `2px solid ${colors.gridBorder}`,
+                      borderRadius: '6px',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {/* Section number */}
+                    {!section.isCenter && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '2px',
+                          left: '4px',
+                          fontSize: '7px',
+                          fontWeight: 600,
+                          color: colors.border,
+                          zIndex: 10,
+                        }}
+                      >
+                        #{section.subGoalIndex + 1}
+                      </div>
+                    )}
+
+                    {section.cells.map((cell) => (
+                      <div
+                        key={cell.key}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          textAlign: 'center',
+                          padding: '1px',
+                          overflow: 'hidden',
+                          backgroundColor: cell.cellBg,
+                          fontSize: `${Math.max(cell.fontSize * 0.7, 6)}px`,
+                          fontWeight: cell.fontWeight,
+                          border: `1px solid ${colors.gridBorder}`,
+                          lineHeight: `${Math.ceil(cell.fontSize * 0.85)}px`,
+                          wordBreak: 'break-all' as const,
+                        }}
+                      >
+                        <span style={{ width: '100%' }}>
+                          {cell.content}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
