@@ -60,7 +60,7 @@ export function EmailAuthModal({ isOpen, onClose, mode }: EmailAuthModalProps) {
   }
 
   const handleVerifyOtp = async () => {
-    if (otpCode.length !== 6) return
+    if (otpCode.length !== 8) return
 
     setIsVerifying(true)
     setError('')
@@ -128,7 +128,7 @@ export function EmailAuthModal({ isOpen, onClose, mode }: EmailAuthModalProps) {
             <p className="text-sm text-gray-600">
               <span className="font-medium">{email}</span>로 발송된 이메일의
               <br />
-              인증번호 6자리를 입력해주세요.
+              인증번호 8자리를 입력해주세요.
             </p>
           </div>
 
@@ -137,11 +137,11 @@ export function EmailAuthModal({ isOpen, onClose, mode }: EmailAuthModalProps) {
             <input
               type="text"
               inputMode="numeric"
-              maxLength={6}
+              maxLength={8}
               value={otpCode}
               onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
               onKeyPress={handleOtpKeyPress}
-              placeholder="000000"
+              placeholder="00000000"
               className="w-full text-center text-2xl font-mono tracking-[0.5em] px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-primary-500 focus:outline-none"
               autoFocus
             />
@@ -151,7 +151,7 @@ export function EmailAuthModal({ isOpen, onClose, mode }: EmailAuthModalProps) {
             <Button
               onClick={handleVerifyOtp}
               className="w-full"
-              disabled={otpCode.length !== 6 || isVerifying}
+              disabled={otpCode.length !== 8 || isVerifying}
             >
               {isVerifying ? <Loading size="sm" /> : '인증하기'}
             </Button>
@@ -159,7 +159,7 @@ export function EmailAuthModal({ isOpen, onClose, mode }: EmailAuthModalProps) {
 
           <div className="mt-4 pt-4 border-t border-gray-100">
             <p className="text-xs text-gray-400 text-center">
-              또는 이메일의 로그인 링크를 직접 클릭하셔도 됩니다.
+              같은 기기에서는 이메일의 로그인 링크를 클릭해도 됩니다.
             </p>
           </div>
         </div>
