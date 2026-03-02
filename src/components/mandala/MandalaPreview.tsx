@@ -138,9 +138,9 @@ export function MandalaPreview({ mandala, colorTheme = 'pink' }: MandalaPreviewP
 
   return (
     <div className="w-full overflow-x-auto">
-      <div 
+      <div
         className="min-w-[600px] flex flex-col gap-3 p-5 rounded-lg"
-        style={{ 
+        style={{
           backgroundColor: colors.background,
           fontFamily: 'system-ui, -apple-system, "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif',
           color: colors.text,
@@ -157,7 +157,7 @@ export function MandalaPreview({ mandala, colorTheme = 'pink' }: MandalaPreviewP
         </div>
 
         {/* Keywords & Commitment Section */}
-        <div 
+        <div
           className="flex justify-between items-start gap-4 p-3 bg-white rounded-xl"
           style={{ border: `2px solid ${colors.gridBorder}` }}
         >
@@ -174,9 +174,9 @@ export function MandalaPreview({ mandala, colorTheme = 'pink' }: MandalaPreviewP
           </div>
 
           {/* Right: Commitment */}
-          <div 
+          <div
             className="flex-1 py-2 px-3 rounded-2xl text-center"
-            style={{ 
+            style={{
               backgroundColor: colors.subGoal,
               border: `2px solid ${colors.border}`,
             }}
@@ -188,7 +188,7 @@ export function MandalaPreview({ mandala, colorTheme = 'pink' }: MandalaPreviewP
         </div>
 
         {/* Mandala Grid */}
-        <div 
+        <div
           className="grid gap-1 justify-center"
           style={{
             gridTemplateColumns: 'repeat(3, 1fr)',
@@ -208,27 +208,28 @@ export function MandalaPreview({ mandala, colorTheme = 'pink' }: MandalaPreviewP
             >
               {/* Section number */}
               {!section.isCenter && (
-                <div 
+                <div
                   className="absolute top-[3px] left-[5px] text-[9px] font-semibold z-10"
                   style={{ color: colors.border }}
                 >
                   #{section.subGoalIndex + 1}
                 </div>
               )}
-              
+
               {section.cells.map((cell) => (
                 <div
                   key={cell.key}
-                  className="flex items-center justify-center text-center p-0.5"
+                  className="flex items-center justify-center text-center p-0.5 overflow-hidden"
                   style={{
                     backgroundColor: cell.cellBg,
                     fontSize: `${cell.fontSize}px`,
                     fontWeight: cell.fontWeight,
                     border: `1px solid ${colors.gridBorder}`,
                     lineHeight: `${Math.ceil(cell.fontSize * 1.2)}px`,
+                    wordBreak: 'break-all',
                   }}
                 >
-                  <span className="break-keep">
+                  <span className="w-full">
                     {cell.content}
                   </span>
                 </div>

@@ -170,11 +170,10 @@ export const MandalaGrid = forwardRef<MandalaGridRef, MandalaGridProps>(function
               <div
                 key={cellIndex}
                 data-testid={isCenterCell ? 'center-cell' : 'mandala-cell'}
-                className={`border border-gray-300 p-1 flex items-center justify-center text-center min-h-[3rem] break-words ${
-                  isCenterCell ? 'bg-primary-500 text-white font-bold text-sm' : 'bg-gray-700 text-white font-semibold text-xs'
-                }`}
+                className={`border border-gray-300 p-1 flex items-center justify-center text-center min-h-[3rem] overflow-hidden ${isCenterCell ? 'bg-primary-500 text-white font-bold text-sm' : 'bg-gray-700 text-white font-semibold text-xs'
+                  }`}
               >
-                {isCenterCell ? center_goal : getCenterCellSubGoal(cellIndex)}
+                <span className="break-all w-full">{isCenterCell ? center_goal : getCenterCellSubGoal(cellIndex)}</span>
               </div>
             )
           })}
@@ -199,11 +198,10 @@ export const MandalaGrid = forwardRef<MandalaGridRef, MandalaGridProps>(function
             <div
               key={cellIndex}
               data-testid="mandala-cell"
-              className={`border border-gray-300 p-1 flex items-center justify-center text-center min-h-[3rem] break-words ${
-                isCenterCell ? 'bg-gray-700 text-white font-semibold text-xs' : 'bg-white text-xs'
-              }`}
+              className={`border border-gray-300 p-1 flex items-center justify-center text-center min-h-[3rem] overflow-hidden ${isCenterCell ? 'bg-gray-700 text-white font-semibold text-xs' : 'bg-white text-xs'
+                }`}
             >
-              {isCenterCell ? subGoal : plan}
+              <span className="break-all w-full">{isCenterCell ? subGoal : plan}</span>
             </div>
           )
         })}
