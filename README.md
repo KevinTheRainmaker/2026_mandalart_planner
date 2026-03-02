@@ -1,5 +1,5 @@
 # 2026 Mandalart Planner
-<a href='https://github.com/KevinTheRainmaker/2026_mandalart_planner/blob/main/README.md'>English</a> | <a href='https://github.com/KevinTheRainmaker/2026_mandalart_planner/blob/main/VERSION_HISTORY.ko.md'>Korean</a>
+<a href='https://github.com/KevinTheRainmaker/2026_mandalart_planner/blob/main/README.md'>English</a> | <a href='https://github.com/KevinTheRainmaker/2026_mandalart_planner/blob/main/README.ko.md'>Korean</a>
 
 A 14-day, guided goal-design web app that combines retrospective prompts and a Mandalart 9x9 framework to turn annual goals into actionable plans. Built as a portfolio-grade product with a clean UX, strong testing discipline, and AI-assisted summaries.
 
