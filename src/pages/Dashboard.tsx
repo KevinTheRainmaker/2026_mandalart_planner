@@ -6,6 +6,7 @@ import { Header, Container } from '@/components/layout'
 import { DayTimeline } from '@/components/timeline'
 import { Loading, Button } from '@/components/common'
 import { createMandala } from '@/lib/api'
+import { REFLECTION_THEMES } from '@/constants'
 
 export function Dashboard() {
   const navigate = useNavigate()
@@ -52,6 +53,7 @@ export function Dashboard() {
         completed_days: [...(mandala.completed_days || []), 1],
         current_day: Math.max(mandala.current_day, 2),
       })
+      navigate('/step/2')
     } catch (error) {
       console.error('Failed to skip reflection:', error)
       alert('건너뛰기에 실패했습니다. 다시 시도해주세요.')
@@ -250,17 +252,33 @@ export function Dashboard() {
             </div>
 
             {/* Redo Confirmation Dialog */}
-            {showRedoConfirm && (
+            {showRedoConfirm && mandala.reflection_theme && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
-                  <h3 className="text-lg font-bold text-gray-900 mb-3">
+                <div className="bg-white rounded-xl shadow-xl p-6 max-w-lg w-full max-h-[80vh] flex flex-col">
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">
                     회고를 다시 하시겠어요?
                   </h3>
-                  <p className="text-gray-600 mb-6">
-                    이전 회고 기록은 삭제됩니다.
-                    <br />
-                    정말 다시하시겠습니까?
+                  <p className="text-sm text-red-500 mb-4">
+                    아래 회고 기록이 삭제됩니다.
                   </p>
+
+                  {/* Reflection Preview */}
+                  <div className="flex-1 overflow-y-auto mb-4 border border-gray-200 rounded-lg p-4 bg-gray-50 space-y-4">
+                    <div className="text-sm font-semibold text-primary-600">
+                      테마: {REFLECTION_THEMES[mandala.reflection_theme]?.title}
+                    </div>
+                    {Object.entries(mandala.reflection_answers).map(([key, answer]) => {
+                      const qIndex = parseInt(key, 10)
+                      const question = REFLECTION_THEMES[mandala.reflection_theme!]?.questions[qIndex]
+                      return (
+                        <div key={key} className="space-y-1">
+                          <p className="text-xs font-medium text-gray-500">Q{qIndex + 1}. {question}</p>
+                          <p className="text-sm text-gray-800 bg-white rounded-md px-3 py-2 border border-gray-100">{answer}</p>
+                        </div>
+                      )
+                    })}
+                  </div>
+
                   <div className="flex gap-3 justify-end">
                     <button
                       onClick={() => setShowRedoConfirm(false)}
@@ -274,7 +292,7 @@ export function Dashboard() {
                       disabled={isResetting}
                       className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors disabled:opacity-50"
                     >
-                      {isResetting ? '처리 중...' : '다시하기'}
+                      {isResetting ? '처리 중...' : '삭제하고 다시하기'}
                     </button>
                   </div>
                 </div>
