@@ -1,246 +1,143 @@
-# 2026 만다라트 목표 설계 서비스
+# 2026 Mandalart Planner
 
-14일간 회고와 만다라트 계획서 작성을 진행할 수 있는 웹 서비스입니다.
+A 14-day, guided goal-design web app that combines retrospective prompts and a Mandalart 9x9 framework to turn annual goals into actionable plans. Built as a portfolio-grade product with a clean UX, strong testing discipline, and AI-assisted summaries.
 
-## 📋 프로젝트 개요
+## Summary
 
-### 핵심 기능
-- **Day 1-2**: 2025년 회고 (6개 테마별 질문 답변)
-- **Day 3**: 2026년 중심 목표 설정
-- **Day 4-5**: 8개 하위 목표 설정
-- **Day 6-13**: 각 하위 목표별 8개 액션플랜 작성 (총 64개)
-- **Day 14**: AI 종합 리포트 생성 및 만다라트 9×9 그리드 시각화
+- 14-day guided flow from retrospective to action plans
+- Mandalart-based goal hierarchy (main goal, sub-goals, action plans)
+- AI-assisted recommendations and final report generation
+- PDF export for reports and grid visualization
+- Secure authentication with Supabase and Row Level Security
 
-### 기술 스택
+## Product Flow
 
-#### Frontend
-- **React 18.3** + **TypeScript 5.3**
-- **Vite 5.0** (빌드 도구)
-- **Tailwind CSS 3.4** (스타일링)
-- **Zustand 4.5** (상태 관리)
-- **React Router 6.20** (라우팅)
+- Day 1–2: Retrospective questions (themed prompts)
+- Day 3: Define the central goal
+- Day 4–5: Define eight sub-goals
+- Day 6–13: Define eight action plans per sub-goal (total 64)
+- Day 14: Generate AI report and Mandalart visualization
 
-#### Backend
-- **Supabase** (PostgreSQL + Auth + Edge Functions)
-- **Row Level Security** (데이터 보안)
+## Core Features
 
-#### Testing
-- **Vitest** (단위 테스트)
-- **Testing Library** (컴포넌트 테스트)
-- **TDD 방식** 개발
+- Guided retrospective with optional skip to next step
+- Goal hierarchy editing with autosave
+- Recommendation feedback loop and custom prompt support
+- AI summary generation with prompt tuning
+- PDF export for report and grid
+- Progress guidance and admin dashboard foundation
+- Error handling and security safeguards for AI endpoints
 
-#### External Services
-- **Anthropic Claude API** (AI 리포트 생성)
-- **jsPDF + html2canvas** (PDF 생성)
+## Tech Stack
 
-## 🚀 시작하기
+### Frontend
+- React 18.3 + TypeScript 5.3
+- Vite 5, Tailwind CSS 3.4
+- Zustand for state management
+- React Router 6 for routing
 
-### 1. 프로젝트 클론
+### Backend
+- Supabase (PostgreSQL, Auth, Edge Functions)
+- Row Level Security for user data isolation
 
-\`\`\`bash
-git clone https://github.com/KevinTheRainmaker/2026_advent_calender.git
-cd 2026_advent_calender
-\`\`\`
+### AI & External Services
+- Google Generative AI API (Gemini)
+- jsPDF + html2canvas for PDF export
 
-### 2. 의존성 설치
+### Testing
+- Vitest + Testing Library
+- Test-driven development on core components and stores
 
-\`\`\`bash
+## Project Structure
+
+```
+src/
+├── components/
+│   ├── common/
+│   ├── auth/
+│   ├── days/
+│   ├── mandala/
+│   ├── timeline/
+│   └── admin/
+├── pages/
+├── store/
+├── hooks/
+├── lib/
+├── types/
+├── constants/
+├── utils/
+└── styles/
+```
+
+## Getting Started
+
+### 1) Clone
+
+```bash
+git clone https://github.com/KevinTheRainmaker/2026_mandalart_planner.git
+cd 2026_mandalart_planner
+```
+
+### 2) Install
+
+```bash
 npm install
-\`\`\`
+```
 
-### 3. 환경 변수 설정
+### 3) Environment Variables
 
-\`.env\` 파일을 생성하고 다음 변수를 설정하세요:
+Create a `.env` file with the following values:
 
-\`\`\`env
+```env
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 VITE_SITE_URL=http://localhost:5173
-\`\`\`
+```
 
-### 4. Supabase 데이터베이스 설정
+### 4) Supabase Setup
 
-Supabase 프로젝트를 생성한 후, SQL 에디터에서 다음 마이그레이션을 실행하세요:
+Run the migration in the Supabase SQL editor:
 
-\`\`\`bash
-# supabase/migrations/20260101000000_init_schema.sql 파일 내용 실행
-\`\`\`
+```
+# supabase/migrations/20260101000000_init_schema.sql
+```
 
-자세한 내용은 [\`supabase/README.md\`](./supabase/README.md)를 참조하세요.
+See `supabase/README.md` for details.
 
-### 5. 개발 서버 실행
+### 5) Development
 
-\`\`\`bash
+```bash
 npm run dev
-\`\`\`
+```
 
-브라우저에서 [http://localhost:5173](http://localhost:5173)을 엽니다.
+### 6) Tests
 
-### 6. 테스트 실행
-
-\`\`\`bash
-# 모든 테스트 실행
+```bash
 npm test
-
-# 특정 파일 테스트
-npm test -- src/utils/validators.test.ts
-
-# 커버리지 포함 테스트
 npm run test:coverage
-\`\`\`
+```
 
-## 📁 프로젝트 구조
+## Scripts
 
-\`\`\`
-src/
-├── components/
-│   ├── common/          # 공통 UI 컴포넌트 (Button, Input, Modal 등)
-│   ├── auth/            # 인증 관련 컴포넌트
-│   ├── days/            # Day 1-14 페이지 컴포넌트
-│   ├── mandala/         # 만다라트 그리드 컴포넌트
-│   ├── timeline/        # 14일 타임라인 컴포넌트
-│   └── admin/           # 관리자 대시보드 컴포넌트
-├── pages/               # 페이지 컴포넌트
-├── store/               # Zustand 스토어 (Auth, Mandala)
-├── hooks/               # 커스텀 훅
-├── lib/                 # 외부 라이브러리 설정 (Supabase, API)
-├── types/               # TypeScript 타입 정의
-├── constants/           # 상수 (질문, 테마 등)
-├── utils/               # 유틸리티 함수 (validators 등)
-└── styles/              # 글로벌 스타일
-\`\`\`
+- `npm run dev`: start dev server
+- `npm run build`: production build
+- `npm run preview`: preview build
+- `npm test`: run tests
+- `npm run test:coverage`: run tests with coverage
+- `npm run lint`: lint
 
-## ✅ 완료된 작업
+## Security
 
-### Phase 1: 인프라 및 기초 설정 ✅
-- [x] Vite + React + TypeScript 프로젝트 설정
-- [x] Tailwind CSS 및 Vitest 설정
-- [x] 프로젝트 디렉토리 구조 생성
-- [x] TypeScript 타입 정의 (Mandala, User, API)
-- [x] Supabase 클라이언트 설정
-- [x] 데이터베이스 스키마 및 마이그레이션
+- Row Level Security ensures per-user data access
+- Magic link authentication for passwordless sign-in
+- Environment variable separation for secrets
 
-### Phase 2: 공통 컴포넌트 ✅
-- [x] Button 컴포넌트 (9 tests ✅)
-- [x] Input 컴포넌트 (7 tests ✅)
-- [x] Textarea 컴포넌트 (6 tests ✅)
-- [x] Loading 컴포넌트 (3 tests ✅)
-- [x] Checkbox 컴포넌트 (4 tests ✅)
-- [x] Modal 컴포넌트 (5 tests ✅)
+## Documentation
 
-### Phase 3: 상태 관리 및 훅 ✅
-- [x] Auth Store (4 tests ✅)
-- [x] Mandala Store (6 tests ✅)
-- [x] useAuth 훅
-- [x] useMandala 훅
-- [x] useAutoSave 훅
-- [x] useCurrentDay 훅
+- `docs/PRD.md` Product Requirements
+- `docs/TRD.md` Technical Requirements
+- `supabase/README.md` Supabase setup
 
-### Phase 4: 유틸리티 및 상수 ✅
-- [x] Validators (20 tests ✅)
-- [x] Reflection Themes (6개 테마, 각 3-4개 질문)
-- [x] Day Prompts
+## License
 
-### Phase 5: 인증 기반 ✅
-- [x] Email Auth Modal
-- [x] Supabase Magic Link 연동
-
-**총 54개 테스트 모두 통과 ✅**
-
-## 🔜 남은 작업
-
-### Phase 6: 라우팅 및 페이지
-- [ ] React Router 설정
-- [ ] 랜딩 페이지
-- [ ] Protected Route 구현
-- [ ] Auth Callback 페이지
-- [ ] Dashboard 페이지
-
-### Phase 7: Day 1-14 컴포넌트
-- [ ] Day 1: 회고 질문 컴포넌트
-- [ ] Day 2: 회고 재검토 컴포넌트
-- [ ] Day 3: 중심 목표 설정 컴포넌트
-- [ ] Day 4-5: 하위 목표 설정 컴포넌트
-- [ ] Day 6-13: 액션플랜 작성 컴포넌트
-- [ ] Day 14: AI 리포트 컴포넌트
-
-### Phase 8: 만다라트 그리드
-- [ ] 9×9 그리드 레이아웃
-- [ ] 셀 컴포넌트 (중심, 하위 목표, 액션)
-- [ ] 반응형 디자인
-- [ ] 호버 및 클릭 인터랙션
-
-### Phase 9: Edge Functions
-- [ ] Claude API 연동 Edge Function
-- [ ] AI 리포트 생성 로직
-- [ ] 에러 핸들링
-
-### Phase 10: PDF 생성
-- [ ] 리포트 PDF 템플릿
-- [ ] 만다라트 그리드 PDF 변환
-- [ ] 다운로드 기능
-
-### Phase 11: 관리자 대시보드
-- [ ] 사용자 진행 상황 테이블
-- [ ] 필터링 및 정렬
-- [ ] CSV 내보내기 (선택)
-
-### Phase 12: 통합 및 배포
-- [ ] 통합 테스트
-- [ ] E2E 테스트 (선택)
-- [ ] 버그 수정
-- [ ] Vercel 배포
-- [ ] 환경 변수 설정
-- [ ] 문서화
-
-## 🧪 테스트
-
-### 테스트 현황
-- **총 테스트**: 54개
-- **통과**: 54개 ✅
-- **실패**: 0개
-
-### 테스트 범위
-- Components: 34 tests
-- Stores: 10 tests
-- Utils: 20 tests
-
-### 테스트 실행
-
-\`\`\`bash
-# 모든 테스트
-npm test
-
-# 특정 디렉토리
-npm test -- src/components/common/
-
-# Watch 모드
-npm test -- --watch
-
-# 커버리지
-npm run test:coverage
-\`\`\`
-
-## 📚 문서
-
-- [PRD (Product Requirements Document)](./docs/PRD.md) - 제품 요구사항
-- [TRD (Technical Requirements Document)](./docs/TRD.md) - 기술 요구사항
-- [Supabase 설정 가이드](./supabase/README.md)
-
-## 🔒 보안
-
-- **Row Level Security (RLS)**: 사용자는 자신의 데이터만 접근 가능
-- **Magic Link 인증**: 비밀번호 없는 안전한 인증
-- **환경 변수**: API 키 및 민감 정보 보호
-
-## 📝 라이선스
-
-이 프로젝트는 MIT 라이선스를 따릅니다.
-
-## 👥 기여
-
-이 프로젝트는 현재 개발 중입니다. 기여 방법은 추후 공개됩니다.
-
-## 📞 문의
-
-프로젝트 관련 문의사항은 [Issues](https://github.com/KevinTheRainmaker/2026_advent_calender/issues)에 남겨주세요.
+MIT
