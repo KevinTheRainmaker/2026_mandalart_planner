@@ -3,11 +3,16 @@ import html2canvas from 'html2canvas'
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import { MandalaPreview } from '@/components/mandala/MandalaPreview'
+import type { PdfOrientation } from '@/components/mandala/MandalaPreview'
 import type { AISummary, Mandala } from '@/types'
 
 // A4 dimensions in pixels (at 96 DPI)
 const A4_WIDTH_PX = 794
 const A4_HEIGHT_PX = 1123
+
+// Full HD wallpaper dimensions
+const WALLPAPER_WIDTH_PX = 1920
+const WALLPAPER_HEIGHT_PX = 1080
 
 /**
  * Escape HTML to prevent XSS attacks
@@ -30,34 +35,39 @@ export async function generateMandalaPDF(
   _element: HTMLElement | null,
   mandala: Mandala,
   filename: string = "mandala-chart.pdf",
-  colorTheme: 'pink' | 'blue' | 'green' | 'beige' = 'pink'
+  colorTheme: 'pink' | 'blue' | 'green' | 'beige' = 'pink',
+  orientation: PdfOrientation = 'portrait'
 ): Promise<boolean> {
   try {
-    // Create hidden container with exact A4 dimensions
+    const isLandscape = orientation === 'landscape'
+    const containerWidth = isLandscape ? WALLPAPER_WIDTH_PX : A4_WIDTH_PX
+    const containerHeight = isLandscape ? WALLPAPER_HEIGHT_PX : A4_HEIGHT_PX
+
+    // Create hidden container
     const container = document.createElement('div')
     container.style.position = 'fixed'
     container.style.left = '-9999px'
     container.style.top = '0'
-    container.style.width = `${A4_WIDTH_PX}px`
-    container.style.height = `${A4_HEIGHT_PX}px`
+    container.style.width = `${containerWidth}px`
+    container.style.height = `${containerHeight}px`
     container.style.backgroundColor = 'white'
     container.style.overflow = 'hidden'
     document.body.appendChild(container)
 
     // Create React root and render MandalaPreview
     const root = createRoot(container)
-    
+
     await new Promise<void>((resolve) => {
       // Create wrapper element
       const wrapper = React.createElement('div', {
-        style: { 
-          width: '100%', 
+        style: {
+          width: '100%',
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
         }
-      }, React.createElement(MandalaPreview, { mandala, colorTheme }))
-      
+      }, React.createElement(MandalaPreview, { mandala, colorTheme, orientation }))
+
       root.render(wrapper)
       // Wait for render to complete
       setTimeout(resolve, 100)
@@ -72,8 +82,8 @@ export async function generateMandalaPDF(
       useCORS: true,
       logging: false,
       backgroundColor: null,
-      width: A4_WIDTH_PX,
-      height: A4_HEIGHT_PX,
+      width: containerWidth,
+      height: containerHeight,
     })
 
     // Clean up React root and container
@@ -81,18 +91,29 @@ export async function generateMandalaPDF(
     document.body.removeChild(container)
 
     // Create PDF
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
-    })
+    if (isLandscape) {
+      // 16:9 landscape format (508mm × 285.75mm at 96 DPI scale)
+      const pdfWidthMm = 508
+      const pdfHeightMm = 285.75
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: [pdfHeightMm, pdfWidthMm],
+      })
+      const imgData = canvas.toDataURL('image/png')
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidthMm, pdfHeightMm)
+      pdf.save(filename)
+    } else {
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      })
+      const imgData = canvas.toDataURL('image/png')
+      pdf.addImage(imgData, 'PNG', 0, 0, 210, 297)
+      pdf.save(filename)
+    }
 
-    // Convert canvas to image and add to PDF
-    const imgData = canvas.toDataURL('image/png')
-    pdf.addImage(imgData, 'PNG', 0, 0, 210, 297)
-
-    // Download PDF
-    pdf.save(filename)
     return true
 
   } catch (error) {

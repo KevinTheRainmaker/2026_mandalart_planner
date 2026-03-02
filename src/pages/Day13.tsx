@@ -1,8 +1,9 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { PencilSimple, ChartBar, ArrowClockwise, X } from '@phosphor-icons/react'
+import { PencilSimple, ChartBar, ArrowClockwise, X, Monitor, File } from '@phosphor-icons/react'
 import { Container, Header } from '@/components/layout'
 import { MandalaPreview } from '@/components/mandala'
+import type { PdfOrientation } from '@/components/mandala'
 import { Button, Loading } from '@/components/common'
 import { useAuth, useMandala } from '@/hooks'
 import { useMandalaStore } from '@/store'
@@ -46,7 +47,7 @@ export function Day13() {
   const [aiReport, setAiReport] = useState<AISummary | null>(
     mandala?.ai_summary || null
   )
-  
+
   // Editable name and commitment
   const [editableName, setEditableName] = useState(mandala?.name || '')
   const [editableCommitment, setEditableCommitment] = useState(mandala?.commitment || '')
@@ -54,17 +55,18 @@ export function Day13() {
   const [newKeywordInput, setNewKeywordInput] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [selectedTheme, setSelectedTheme] = useState<ColorTheme>('pink')
+  const [selectedOrientation, setSelectedOrientation] = useState<PdfOrientation>('portrait')
   const { setMandala } = useMandalaStore()
 
   // Sync editable states with mandala data
   useEffect(() => {
     if (mandala?.name !== undefined) setEditableName(mandala.name || '')
   }, [mandala?.name])
-  
+
   useEffect(() => {
     if (mandala?.commitment !== undefined) setEditableCommitment(mandala.commitment || '')
   }, [mandala?.commitment])
-  
+
   useEffect(() => {
     if (mandala?.ai_summary?.keywords) setEditableKeywords(mandala.ai_summary.keywords)
   }, [mandala?.ai_summary?.keywords])
@@ -91,13 +93,13 @@ export function Day13() {
       console.log('Starting AI report generation...')
       const report = await generateAIReport(mandala)
       console.log('AI report generated successfully:', report)
-      
+
       // 리포트에 현재 해시 포함
       const reportWithHash: AISummary = {
         ...report,
         content_hash: currentHash,
       }
-      
+
       setAiReport(reportWithHash)
 
       await updateMandala({
@@ -122,13 +124,13 @@ export function Day13() {
       console.log('Regenerating AI report with updated content...')
       const report = await generateAIReport(mandala)
       console.log('AI report regenerated successfully:', report)
-      
+
       // 리포트에 현재 해시 포함
       const reportWithHash: AISummary = {
         ...report,
         content_hash: currentHash,
       }
-      
+
       setAiReport(reportWithHash)
 
       await updateMandala({
@@ -189,7 +191,7 @@ export function Day13() {
         const updates: Record<string, string> = {}
         if (editableName !== mandala.name) updates.name = editableName
         if (editableCommitment !== mandala.commitment) updates.commitment = editableCommitment
-        
+
         if (Object.keys(updates).length > 0) {
           const updated = await updateMandalaApi(mandala.id, updates)
           if (updated) {
@@ -211,7 +213,7 @@ export function Day13() {
       })
 
       const today = new Date().toISOString().split('T')[0]
-      await generateMandalaPDF(null, latestMandala, `mandala-chart-${today}.pdf`, selectedTheme)
+      await generateMandalaPDF(null, latestMandala, `mandala-chart-${today}.pdf`, selectedTheme, selectedOrientation)
     } catch (error) {
       console.error('Failed to download Mandala PDF:', error)
       alert('PDF 다운로드에 실패했습니다. 다시 시도해주세요.')
@@ -367,7 +369,7 @@ export function Day13() {
               <p className="text-sm text-gray-600 mb-6">
                 이름과 다짐을 입력하고 PDF로 저장하세요.
               </p>
-              
+
               {/* Name Input */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -490,13 +492,12 @@ export function Day13() {
                     <button
                       key={theme}
                       onClick={() => setSelectedTheme(theme)}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all ${
-                        selectedTheme === theme
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all ${selectedTheme === theme
                           ? 'border-primary-500 ring-2 ring-primary-200'
                           : 'border-gray-200 hover:border-gray-300'
-                      }`}
+                        }`}
                     >
-                      <div 
+                      <div
                         className="w-5 h-5 rounded-full border border-gray-300"
                         style={{ backgroundColor: COLOR_PALETTES[theme].subGoal }}
                       />
@@ -506,13 +507,42 @@ export function Day13() {
                 </div>
               </div>
 
+              {/* Orientation Selector */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  📐 방향 선택
+                </label>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setSelectedOrientation('portrait')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all ${selectedOrientation === 'portrait'
+                        ? 'border-primary-500 ring-2 ring-primary-200'
+                        : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                  >
+                    <File size={20} weight="duotone" />
+                    <span className="text-sm font-medium">세로형 (A4)</span>
+                  </button>
+                  <button
+                    onClick={() => setSelectedOrientation('landscape')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all ${selectedOrientation === 'landscape'
+                        ? 'border-primary-500 ring-2 ring-primary-200'
+                        : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                  >
+                    <Monitor size={20} weight="duotone" />
+                    <span className="text-sm font-medium">가로형 (배경화면)</span>
+                  </button>
+                </div>
+              </div>
+
               {/* Download Button */}
               <div className="flex justify-center mb-8">
                 <Button onClick={handleDownloadMandala} variant="secondary" size="lg" className="flex items-center gap-2">
                   <ChartBar size={20} weight="bold" /> 만다라트 계획서 PDF 다운로드
                 </Button>
               </div>
-              
+
               {/* PDF Preview */}
               <div>
                 <h4 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
@@ -522,9 +552,10 @@ export function Day13() {
                   실제 PDF에 표시될 내용입니다. 이름과 다짐을 입력하면 미리보기에 반영됩니다.
                 </p>
                 <div className="border border-gray-200 rounded-lg overflow-hidden shadow-inner bg-gray-100 p-2">
-                  <MandalaPreview 
-                    mandala={{...mandala, name: editableName, commitment: editableCommitment, ai_summary: mandala.ai_summary ? {...mandala.ai_summary, keywords: editableKeywords} : null}} 
+                  <MandalaPreview
+                    mandala={{ ...mandala, name: editableName, commitment: editableCommitment, ai_summary: mandala.ai_summary ? { ...mandala.ai_summary, keywords: editableKeywords } : null }}
                     colorTheme={selectedTheme}
+                    orientation={selectedOrientation}
                   />
                 </div>
               </div>
