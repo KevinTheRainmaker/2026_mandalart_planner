@@ -16,6 +16,8 @@ export function EmailAuthModal({ isOpen, onClose, mode }: EmailAuthModalProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState('')
+  const [otpCode, setOtpCode] = useState('')
+  const [isVerifying, setIsVerifying] = useState(false)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -57,41 +59,109 @@ export function EmailAuthModal({ isOpen, onClose, mode }: EmailAuthModalProps) {
     }
   }
 
+  const handleVerifyOtp = async () => {
+    if (otpCode.length !== 6) return
+
+    setIsVerifying(true)
+    setError('')
+
+    try {
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        email,
+        token: otpCode,
+        type: 'email',
+      })
+
+      if (verifyError) throw verifyError
+
+      // 인증 성공 - AuthCallback과 동일한 로직을 타도록 리다이렉트
+      window.location.href = `/auth/callback?mode=${mode}`
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : '인증번호가 올바르지 않습니다'
+      )
+    } finally {
+      setIsVerifying(false)
+    }
+  }
+
+  const handleOtpKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleVerifyOtp()
+    }
+  }
+
   const handleClose = () => {
     setEmail('')
     setConsent(false)
     setMarketingConsent(false)
     setError('')
     setSent(false)
+    setOtpCode('')
     onClose()
   }
 
   if (sent) {
     return (
       <Modal isOpen={isOpen} onClose={handleClose} title="이메일 확인">
-        <div className="text-center py-8">
-          <div className="mb-4">
-            <svg
-              className="mx-auto h-16 w-16 text-primary-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-1.14.76a2 2 0 01-2.22 0l-1.14-.76"
-              />
-            </svg>
+        <div className="py-6">
+          <div className="text-center mb-6">
+            <div className="mb-4">
+              <svg
+                className="mx-auto h-16 w-16 text-primary-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-1.14.76a2 2 0 01-2.22 0l-1.14-.76"
+                />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              인증 메일을 발송했습니다
+            </h3>
+            <p className="text-sm text-gray-600">
+              <span className="font-medium">{email}</span>로 발송된 이메일의
+              <br />
+              인증번호 6자리를 입력해주세요.
+            </p>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            인증 링크를 발송했습니다
-          </h3>
-          <p className="text-gray-600 mb-6">
-            {email}로 발송된 이메일의 링크를 클릭하여 로그인해주세요.
-          </p>
-          <Button onClick={handleClose}>확인</Button>
+
+          {/* OTP Code Input */}
+          <div className="space-y-4">
+            <input
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              value={otpCode}
+              onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+              onKeyPress={handleOtpKeyPress}
+              placeholder="000000"
+              className="w-full text-center text-2xl font-mono tracking-[0.5em] px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-primary-500 focus:outline-none"
+              autoFocus
+            />
+
+            {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+
+            <Button
+              onClick={handleVerifyOtp}
+              className="w-full"
+              disabled={otpCode.length !== 6 || isVerifying}
+            >
+              {isVerifying ? <Loading size="sm" /> : '인증하기'}
+            </Button>
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <p className="text-xs text-gray-400 text-center">
+              또는 이메일의 로그인 링크를 직접 클릭하셔도 됩니다.
+            </p>
+          </div>
         </div>
       </Modal>
     )
@@ -128,11 +198,11 @@ export function EmailAuthModal({ isOpen, onClose, mode }: EmailAuthModalProps) {
         {error && <p className="text-sm text-red-500">{error}</p>}
 
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? <Loading size="sm" /> : '인증 링크 받기'}
+          {isLoading ? <Loading size="sm" /> : '인증 메일 받기'}
         </Button>
 
         <p className="text-xs text-gray-500 text-center">
-          인증 링크는 이메일로 발송되며, 클릭 시 자동으로 로그인됩니다.
+          인증 메일이 발송되며, 인증번호 입력 또는 링크 클릭으로 로그인됩니다.
         </p>
       </form>
     </Modal>
