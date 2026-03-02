@@ -10,6 +10,13 @@ A 14-day, guided goal-design web app that combines retrospective prompts and a M
 - PDF export for reports and grid visualization
 - Secure authentication with Supabase and Row Level Security
 
+## Documentation Links
+
+- English: README.md
+- 한국어: README.ko.md
+- Version History: VERSION_HISTORY.md
+- 버전 이력(한국어): VERSION_HISTORY.ko.md
+
 ## Product Flow
 
 - Day 1–2: Retrospective questions (themed prompts)
